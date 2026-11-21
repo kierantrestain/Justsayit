@@ -542,7 +542,12 @@ final class SimpleUpdater: ObservableObject {
     private func presentUpdateOffer(version: String, automatic: Bool) {
         let channel = self.betaChannel
         let revision = self.channelRevision
+        #if DEBUG
+        let canInstall = !Self.allowedTeamIDs.isEmpty || self.simulationInstallHandler != nil
+            || (self === Self.shared && UpdatePromptSimulation.isEnabled)
+        #else
         let canInstall = !Self.allowedTeamIDs.isEmpty
+        #endif
         self.updatePrompts.presentFloatingPrompt(
             title: "Update Available",
             message: canInstall

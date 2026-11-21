@@ -147,7 +147,7 @@ final class UpdatePromptIntegrationTests: XCTestCase {
         XCTAssertTrue(manager.isFluidMainWindow(window))
         window.identifier = nil
         XCTAssertFalse(manager.isFluidMainWindow(window), "unrelated page-titled windows stay excluded")
-        window.title = "FluidVoice"
+        window.title = "Just Say It"
         XCTAssertTrue(manager.isFluidMainWindow(window), "legacy hosted windows remain supported")
         window.level = .floating
         XCTAssertFalse(manager.isFluidMainWindow(window), "floating captions must stay excluded")
@@ -225,7 +225,7 @@ final class UpdatePromptIntegrationTests: XCTestCase {
         XCTAssertEqual(installActions, 1)
         XCTAssertFalse(offer.isVisible)
         XCTAssertFalse(self.isVisible("Update Check Failed"))
-        let status = try self.visibleWindow("Installing FluidVoice \(version)")
+        let status = try self.visibleWindow("Installing Just Say It \(version)")
         let progress = try XCTUnwrap(status.contentView?.subviews.compactMap { $0 as? NSProgressIndicator }.first)
         XCTAssertTrue(progress.isIndeterminate)
         XCTAssertFalse(progress.isHidden)
@@ -279,7 +279,7 @@ final class UpdatePromptIntegrationTests: XCTestCase {
         ])
         let version = "direct-test-\(UUID().uuidString)"
         updater.showUpdateInstallStatus(version: version)
-        let status = try self.visibleWindow("Installing FluidVoice \(version)")
+        let status = try self.visibleWindow("Installing Just Say It \(version)")
         XCTAssertFalse(offer.isVisible)
         XCTAssertFalse(self.isVisible("Update Check Failed"))
         staleInstall.performClick(nil)
