@@ -393,6 +393,7 @@ struct ContentView: View {
     @State private var accessibilityGuideMonitorTask: Task<Void, Never>?
     @State private var accessibilityGuideRequestID: UUID?
     @State private var prewarmDictationTask: Task<Void, Never>?
+    @State private var prewarmingOllama: OllamaDictationWarmup?
     @State private var overlayLifecycleID: UInt64 = 0
     @State private var spokenSendAutoStopTask: Task<Void, Never>?
     @State private var spokenSendAutoStopTriggered = false
@@ -815,7 +816,13 @@ struct ContentView: View {
     private func scheduleDelayedAudioInitialization() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             DebugLogger.shared.info("🚦 Startup delay complete, signaling UI ready...", source: "ContentView")
+            let isFirstReadySignal = !self.appServices.isUIReady
             self.appServices.signalUIReady()
+            if isFirstReadySignal, self.settings.onboardingCompleted, self.activeRecordingMode == .none,
+               let warmup = DictationProviderRoute.ollamaWarmup(settings: self.settings, slot: .primary, appBundleID: nil)
+            {
+                self.prewarmOllamaDictation(warmup)
+            }
             if self.settings.fluidMeetEnabled {
                 self.menuBarManager.configure(
                     meetingCoordinator: self.appServices.meetingSessionCoordinator
@@ -4699,12 +4706,11 @@ struct ContentView: View {
         self.setActiveRecordingMode(.none)
     }
 
-    /// Cancel an in-flight prewarm. Called on abort / new recording start — NOT on
-    /// a normal stop, because AI post-processing runs after stop and benefits from
-    /// the warm prefix cache the prewarm prime.
+    /// Normal stops leave the warmup running for the cleanup request.
     private func cancelPrewarmDictationIfNeeded() {
         self.prewarmDictationTask?.cancel()
         self.prewarmDictationTask = nil
+        self.prewarmingOllama = nil
     }
 
     private func handleLivePromptModeSwitch(_ mode: SettingsStore.PromptMode) {
@@ -4848,7 +4854,7 @@ struct ContentView: View {
                 }
                 self.captureRecordingContext()
                 self.startDictationContextCaptureIfNeeded(for: .primary)
-                self.prewarmPrivateAIDictationIfNeeded(for: .primary)
+                self.prewarmAIDictationIfNeeded(for: .primary)
                 DebugLogger.shared.benchmark(
                     "APP_BENCH",
                     message: "overlay_phase phase=recording trigger=first_pcm",
@@ -4918,10 +4924,13 @@ struct ContentView: View {
         return true
     }
 
-    private func prewarmPrivateAIDictationIfNeeded(for slot: SettingsStore.DictationShortcutSlot) {
+    private func prewarmAIDictationIfNeeded(for slot: SettingsStore.DictationShortcutSlot) {
         let appBundleID = self.asr.isRunningOrStarting ? self.recordingAppInfo?.bundleId : DictationAppSession.shared.appID
-        self.prewarmDictationTask?.cancel()
-        self.prewarmDictationTask = nil
+        if let warmup = DictationProviderRoute.ollamaWarmup(settings: self.settings, slot: slot, appBundleID: appBundleID) {
+            self.prewarmOllamaDictation(warmup)
+            return
+        }
+        self.cancelPrewarmDictationIfNeeded()
         guard let verification = DictationProviderRoute.privateAIWarmupVerification(
             settings: .shared,
             slot: slot,
@@ -4946,6 +4955,25 @@ struct ContentView: View {
                 "AI dictation prewarm complete slot=\(slot.rawValue)",
                 source: "ContentView"
             )
+        }
+    }
+
+    private func prewarmOllamaDictation(_ warmup: OllamaDictationWarmup) {
+        guard self.prewarmingOllama != warmup,
+              let generation = MeetingModelResidencyCoordinator.shared.warmupGeneration
+        else { return }
+
+        self.cancelPrewarmDictationIfNeeded()
+        self.prewarmingOllama = warmup
+        self.prewarmDictationTask = Task(priority: .utility) {
+            defer {
+                if !Task.isCancelled {
+                    self.prewarmDictationTask = nil
+                    self.prewarmingOllama = nil
+                }
+            }
+            guard MeetingModelResidencyCoordinator.shared.canRunWarmup(generation) else { return }
+            await warmup.run()
         }
     }
 
@@ -5210,7 +5238,7 @@ struct ContentView: View {
             let slot = self.activeDictationShortcutSlot ?? .primary
             DictationAppSession.shared.select(selection, slot: slot, appID: DictationAppSession.shared.appID)
             self.applyDictationShortcutSelectionContext(for: slot)
-            self.prewarmPrivateAIDictationIfNeeded(for: slot)
+            self.prewarmAIDictationIfNeeded(for: slot)
         }
 
         guard self.hotkeyManager == nil else { return }
@@ -5681,7 +5709,7 @@ extension ContentView {
                 }
                 self.captureRecordingContext()
                 self.startDictationContextCaptureIfNeeded(for: slot)
-                self.prewarmPrivateAIDictationIfNeeded(for: slot)
+                self.prewarmAIDictationIfNeeded(for: slot)
                 self.appBench("overlay_phase phase=recording trigger=first_pcm")
             })
             guard !Task.isCancelled else {

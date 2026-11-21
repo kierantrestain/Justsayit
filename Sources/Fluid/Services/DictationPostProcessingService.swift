@@ -58,6 +58,22 @@ struct DictationProviderRoute: Equatable {
         return .init(settings: settings)
     }
 
+    static func ollamaWarmup(
+        settings: SettingsStore,
+        slot: SettingsStore.DictationShortcutSlot,
+        appBundleID: String?
+    ) -> OllamaDictationWarmup? {
+        let selection = settings.resolvedDictationPromptSelection(for: slot, appBundleID: appBundleID, privateAIAvailable: true)
+        guard case let .provider("ollama", configuredModel) = self.modelChoice(settings: settings, selection: selection, appBundleID: appBundleID),
+              settings.verifiedProviderFingerprints["ollama"] != nil
+        else { return nil }
+
+        return OllamaDictationWarmup(
+            baseURL: DictationAIPostProcessingGate.baseURL(for: "ollama", settings: settings),
+            model: self.modelID(settings: settings, providerID: "ollama", configuredModel: configuredModel)
+        )
+    }
+
     static func modelChoice(
         settings: SettingsStore,
         selection: SettingsStore.DictationPromptSelection,
