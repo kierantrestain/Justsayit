@@ -4573,14 +4573,14 @@ extension DictationE2ETests {
             SettingsStore.shared.customDictionaryEntries = []
             ASRService.invalidateDictionaryCache()
             XCTAssertEqual(
-                ASRService.applyCustomDictionary("Ask claud to log it in post hoc for fluid voice."),
-                "Ask Claude to log it in PostHog for FluidVoice."
+                ASRService.applyCustomDictionary("Ask claud to log it in posthog for justsayit."),
+                "Ask Claude to log it in PostHog for Just Say It."
             )
 
             // A user mapping for the same spelling replaces the built-in one.
-            SettingsStore.shared.customDictionaryEntries = [SettingsStore.CustomDictionaryEntry(triggers: ["post hoc"], replacement: "post hoc")]
+            SettingsStore.shared.customDictionaryEntries = [.init(triggers: ["posthog"], replacement: "posthog")]
             ASRService.invalidateDictionaryCache()
-            XCTAssertEqual(ASRService.applyCustomDictionary("an analysis done post hoc"), "an analysis done post hoc")
+            XCTAssertEqual(ASRService.applyCustomDictionary("look it up in posthog"), "look it up in posthog")
             XCTAssertEqual(ASRService.applyCustomDictionary("ask claud"), "ask Claude", "Other built-ins still apply")
         }
     }
@@ -4590,11 +4590,11 @@ extension DictationE2ETests {
     func testUserPhraseOverridesOnlyTheBuiltInOccurrencesItCovers() {
         defer { ASRService.invalidateDictionaryCache() }
         self.withRestoredDefaults(keys: [self.customDictionaryEntriesKey]) {
-            SettingsStore.shared.customDictionaryEntries = [.init(triggers: ["post hoc analysis"], replacement: "post hoc analysis")]
+            SettingsStore.shared.customDictionaryEntries = [.init(triggers: ["posthog analysis"], replacement: "posthog analysis")]
             ASRService.invalidateDictionaryCache()
             XCTAssertEqual(
-                ASRService.applyCustomDictionary("🙂 post hoc analysis; log it in post hoc for fluid voice."),
-                "🙂 post hoc analysis; log it in PostHog for FluidVoice."
+                ASRService.applyCustomDictionary("🙂 posthog analysis; log it in posthog for justsayit."),
+                "🙂 posthog analysis; log it in PostHog for Just Say It."
             )
         }
     }
@@ -4602,13 +4602,13 @@ extension DictationE2ETests {
     func testUserReplacementAndCanonicalSpellingWinOverBuiltIns() {
         defer { ASRService.invalidateDictionaryCache() }
         self.withRestoredDefaults(keys: [self.customDictionaryEntriesKey]) {
-            SettingsStore.shared.customDictionaryEntries = [.init(triggers: ["my spelling"], replacement: "clawed")]
+            SettingsStore.shared.customDictionaryEntries = [.init(triggers: ["my spelling"], replacement: "chat gpt")]
             ASRService.invalidateDictionaryCache()
-            XCTAssertEqual(ASRService.applyCustomDictionary("my spelling; clawed; claud"), "clawed; clawed; Claude")
+            XCTAssertEqual(ASRService.applyCustomDictionary("my spelling; chat gpt; claud"), "chat gpt; chat gpt; Claude")
 
-            SettingsStore.shared.customDictionaryEntries = [.init(triggers: ["hoc"], replacement: "HOC")]
+            SettingsStore.shared.customDictionaryEntries = [.init(triggers: ["gpt"], replacement: "G P T")]
             ASRService.invalidateDictionaryCache()
-            XCTAssertEqual(ASRService.applyCustomDictionary("post hoc; claud"), "post HOC; Claude")
+            XCTAssertEqual(ASRService.applyCustomDictionary("chat gpt; claud"), "chat G P T; Claude")
         }
     }
 
@@ -4617,7 +4617,7 @@ extension DictationE2ETests {
         self.withRestoredDefaults(keys: [self.customDictionaryEntriesKey]) {
             SettingsStore.shared.customDictionaryEntries = [.init(triggers: ["Claude Code"], replacement: "My Assistant")]
             ASRService.invalidateDictionaryCache()
-            XCTAssertEqual(ASRService.applyCustomDictionary("open claud code and fluid voice"), "open My Assistant and FluidVoice")
+            XCTAssertEqual(ASRService.applyCustomDictionary("open claud code and justsayit"), "open My Assistant and Just Say It")
         }
     }
 
@@ -4625,23 +4625,23 @@ extension DictationE2ETests {
         defer { ASRService.invalidateDictionaryCache() }
         self.withRestoredDefaults(keys: [self.customDictionaryEntriesKey]) {
             SettingsStore.shared.customDictionaryEntries = [
-                .init(triggers: ["first phrase"], replacement: "post hoc analysis"),
+                .init(triggers: ["first phrase"], replacement: "posthog analysis"),
                 .init(triggers: ["second phrase"], replacement: "analysis claud"),
             ]
             ASRService.invalidateDictionaryCache()
-            XCTAssertEqual(ASRService.applyCustomDictionary("post hoc analysis claud; claud"), "post hoc analysis claud; Claude")
+            XCTAssertEqual(ASRService.applyCustomDictionary("posthog analysis claud; claud"), "posthog analysis claud; Claude")
         }
     }
 
     func testRemovingUserRulesRestoresBuiltInDefaultsAfterCacheInvalidation() {
         defer { ASRService.invalidateDictionaryCache() }
         self.withRestoredDefaults(keys: [self.customDictionaryEntriesKey]) {
-            SettingsStore.shared.customDictionaryEntries = [.init(triggers: ["post hoc analysis"], replacement: "post hoc analysis")]
+            SettingsStore.shared.customDictionaryEntries = [.init(triggers: ["posthog analysis"], replacement: "posthog analysis")]
             ASRService.invalidateDictionaryCache()
-            XCTAssertEqual(ASRService.applyCustomDictionary("post hoc analysis"), "post hoc analysis")
+            XCTAssertEqual(ASRService.applyCustomDictionary("posthog analysis"), "posthog analysis")
             SettingsStore.shared.customDictionaryEntries = []
             ASRService.invalidateDictionaryCache()
-            XCTAssertEqual(ASRService.applyCustomDictionary("post hoc analysis"), "PostHog analysis")
+            XCTAssertEqual(ASRService.applyCustomDictionary("posthog analysis"), "PostHog analysis")
         }
     }
 
