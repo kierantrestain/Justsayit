@@ -26,10 +26,20 @@ test -x "$helper"
 # The binary Swift package has copies in place of the framework's normal symlinks.
 test -f "$transcribe/Versions/A/CTranscribe"
 test -d "$transcribe/Versions/A/Resources"
-rm -rf "$transcribe/Versions/Current" "$transcribe/CTranscribe" "$transcribe/Resources"
-ln -s A "$transcribe/Versions/Current"
-ln -s Versions/Current/CTranscribe "$transcribe/CTranscribe"
-ln -s Versions/Current/Resources "$transcribe/Resources"
+staging="$(mktemp -d "$derived_data/preview-staging.XXXXXX")"
+normalized="$staging/CTranscribe.framework"
+mkdir -p "$normalized/Versions"
+ditto "$transcribe/Versions/A" "$normalized/Versions/A"
+ln -s A "$normalized/Versions/Current"
+for item in CTranscribe Resources Headers Modules PrivateHeaders; do
+    if [ -e "$normalized/Versions/A/$item" ]; then
+        ln -s "Versions/Current/$item" "$normalized/$item"
+    fi
+done
+codesign --force --sign - "$normalized"
+codesign --verify --strict "$normalized"
+mv "$transcribe" "$staging/original.framework"
+mv "$normalized" "$transcribe"
 
 for framework in "$frameworks"/*.framework; do
     codesign --force --sign - "$framework"
@@ -52,6 +62,6 @@ test "$(lipo -archs "$app/Contents/MacOS/Just Say It")" = arm64
 "$helper" --help >/dev/null
 
 archive="$output_dir/Just-Say-It-macOS-arm64.zip"
-rm -f "$archive"
-ditto -c -k --keepParent "$app" "$archive"
+ditto -c -k --keepParent "$app" "$staging/Just-Say-It-macOS-arm64.zip"
+mv -f "$staging/Just-Say-It-macOS-arm64.zip" "$archive"
 printf '%s\n' "$archive"
