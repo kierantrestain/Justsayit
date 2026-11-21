@@ -1013,12 +1013,36 @@ final class CustomDictionaryManualEntryTests: XCTestCase {
     }
 
     func testExactCaseOverrideDoesNotDisableBuiltInCorrectionsForOtherCases() {
-        self.withRestoredDictionary([.init(triggers: ["POST HOC"], replacement: "Custom Choice", caseSensitive: true)]) {
-            XCTAssertEqual(ASRService.applyCustomDictionary("POST HOC, post hoc, Post Hoc"), "Custom Choice, PostHog, PostHog")
+        self.withRestoredDictionary([.init(triggers: ["POSTHOG"], replacement: "Custom Choice", caseSensitive: true)]) {
+            XCTAssertEqual(ASRService.applyCustomDictionary("POSTHOG, posthog, Posthog"), "Custom Choice, PostHog, PostHog")
         }
-        self.withRestoredDictionary([.init(triggers: ["CUSTOM"], replacement: "FLUID VOICE", caseSensitive: true)]) {
-            XCTAssertEqual(ASRService.applyCustomDictionary("CUSTOM, fluid voice"), "FLUID VOICE, FluidVoice")
+        self.withRestoredDictionary([.init(triggers: ["CUSTOM"], replacement: "JUSTSAYIT", caseSensitive: true)]) {
+            XCTAssertEqual(ASRService.applyCustomDictionary("CUSTOM, justsayit"), "JUSTSAYIT, Just Say It")
         }
+    }
+
+    func testBuiltInFormattingKeepsOrdinarySpeechAndNames() {
+        self.withRestoredDictionary([]) {
+            let text = "Gitlab, youtube and wifi for Saoirse. The cat clawed it. A post hoc check. Please just say it. xgithub."
+            let expected = "GitLab, YouTube and Wi-Fi for Saoirse. The cat clawed it. A post hoc check. Please just say it. xgithub."
+            XCTAssertEqual(ASRService.applyCustomDictionary(text), expected)
+            XCTAssertEqual(ASRService.applyCustomDictionary(expected), expected)
+        }
+        self.withRestoredDictionary([.init(triggers: ["github"], replacement: "our repo")]) {
+            XCTAssertEqual(ASRService.applyCustomDictionary("GITHUB and gitlab"), "our repo and GitLab")
+        }
+    }
+
+    func testStarterVocabularySearchAndMergePreserveChosenSpellings() {
+        let names = StarterVocabulary.Group.names
+        XCTAssertEqual(names.matching("  NGUYEN "), ["Nguyễn"])
+        XCTAssertEqual(names.matching("sian"), ["Siân"])
+        XCTAssertEqual(
+            StarterVocabulary.newWords(["  NIAMH ", " Seán ", "SEÁN", "Sean", ""], existing: ["Niamh"]),
+            ["Seán", "Sean"]
+        )
+        let allWords = StarterVocabulary.Group.allCases.flatMap(\.words)
+        XCTAssertEqual(StarterVocabulary.newWords(allWords, existing: []).count, allWords.count)
     }
 
     func testAutomaticTrainingCannotBroadenAnExactCaseRule() {

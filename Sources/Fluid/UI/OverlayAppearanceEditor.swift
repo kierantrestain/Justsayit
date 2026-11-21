@@ -268,7 +268,7 @@ private struct OverlayAppearanceSample: View {
                     .interpolation(.high)
                     .scaledToFit()
                     .frame(width: self.layout.iconSize, height: self.layout.iconSize)
-                    .accessibilityLabel("FluidVoice")
+                    .accessibilityLabel("Just Say It")
                 Spacer(minLength: 4)
                 HStack(spacing: self.layout.barSpacing) {
                     ForEach(0..<self.layout.barCount, id: \.self) { index in

@@ -34,7 +34,7 @@ enum SimpleUpdateError: Error, LocalizedError {
         case .notAnAppBundle: return "Extracted content does not contain an app bundle."
         case .codesignMismatch: return "Downloaded app’s code signature does not match current app."
         case .backupFailed: return "The current app could not be backed up. Nothing was replaced."
-        case .installedAppChanged: return "The installed app changed. Restart FluidVoice before trying the update again."
+        case .installedAppChanged: return "The installed app changed. Restart Just Say It before trying the update again."
         case .rollbackUnavailable: return "No rollback backup is available."
         case .rollbackRestoreFailed: return "Failed to restore a previous version."
         }
@@ -251,7 +251,7 @@ final class SimpleUpdater: ObservableObject {
         defer {
             if !installed { self.resetUpdateOperation() }
         }
-        let releases = try await self.fetchReleases(owner: "altic-dev", repo: "Fluid-oss")
+        let releases = try await self.fetchReleases(owner: AppIdentity.repositoryOwner, repo: AppIdentity.repositoryName)
         guard let release = releases.first(where: { $0.tag_name == version }),
               let target = self.parseSemanticVersion(version),
               let current = self.parseSemanticVersion(self.currentAppVersion),
@@ -264,7 +264,7 @@ final class SimpleUpdater: ObservableObject {
             return
         }
         #endif
-        try await self.installReleaseArchive(release, repo: "Fluid-oss")
+        try await self.installReleaseArchive(release, repo: AppIdentity.repositoryName)
         installed = true
     }
 
@@ -333,12 +333,14 @@ final class SimpleUpdater: ObservableObject {
         }
     }
 
-    /// Allowed Apple Developer Team IDs for code-sign validation
-    /// Restrict update transitions to FluidVoice's approved signing teams.
-    private nonisolated static let allowedTeamIDs: Set<String> = [
-        "V4J43B279J",
-        "537RRRT57V",
-    ]
+    /// The build's explicitly trusted Developer ID team. Preview builds use GitHub for downloads.
+    private nonisolated static var allowedTeamIDs: Set<String> {
+        guard let team = Bundle.main.object(forInfoDictionaryKey: "JustSayItUpdateTeamID") as? String,
+              team.count == 10,
+              team.utf8.allSatisfy({ (48...57).contains($0) || (65...90).contains($0) })
+        else { return [] }
+        return [team]
+    }
 
     private static let githubDateFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
@@ -480,7 +482,7 @@ final class SimpleUpdater: ObservableObject {
                 if self.checkID == requestID { self.cancelUpdateCheck() }
             }
             do {
-                let result = try await self.checkForUpdate(owner: "altic-dev", repo: "Fluid-oss", includePrerelease: channel)
+                let result = try await self.checkForUpdate(owner: AppIdentity.repositoryOwner, repo: AppIdentity.repositoryName, includePrerelease: channel)
                 guard self.checkID == requestID, self.channelRevision == channelRevision, !self.isUpdateInProgress else { return }
                 self.recordUpdateCheckDate()
                 self.availableChannelRevision = channelRevision
@@ -497,7 +499,7 @@ final class SimpleUpdater: ObservableObject {
                 } else {
                     self.updatePrompts.dismissUpdateOffers()
                     if self.checkIsExplicit {
-                        self.showUpdateCheckResult(title: channel ? "No Beta Updates" : "No Updates", message: "You're already running the latest available version of FluidVoice.")
+                        self.showUpdateCheckResult(title: channel ? "No Beta Updates" : "No Updates", message: "You're already running the latest available version of Just Say It.")
                     }
                 }
             } catch {
@@ -540,13 +542,20 @@ final class SimpleUpdater: ObservableObject {
     private func presentUpdateOffer(version: String, automatic: Bool) {
         let channel = self.betaChannel
         let revision = self.channelRevision
+        let canInstall = !Self.allowedTeamIDs.isEmpty
         self.updatePrompts.presentFloatingPrompt(
             title: "Update Available",
-            message: "FluidVoice \(version) is now available. The app will restart automatically after installation.",
+            message: canInstall
+                ? "Just Say It \(version) is now available. The app will restart after installation."
+                : "Just Say It \(version) is now available on GitHub.",
             actions: [
-                FloatingPromptAction(title: "Install Now") { [weak self] in
+                FloatingPromptAction(title: canInstall ? "Install Now" : "View Release") { [weak self] in
                     guard let self, self.availableUpdateVersion == version, self.channelRevision == revision, !self.isUpdateInProgress else { return }
-                    self.installApprovedUpdate(version: version, channel: channel)
+                    if canInstall {
+                        self.installApprovedUpdate(version: version, channel: channel)
+                    } else if let url = AppIdentity.githubURL("releases") {
+                        NSWorkspace.shared.open(url)
+                    }
                 },
                 FloatingPromptAction(title: "Later") { [weak self] in
                     guard let self, self.availableUpdateVersion == version, self.channelRevision == revision else { return }
@@ -564,7 +573,7 @@ final class SimpleUpdater: ObservableObject {
     private func installApprovedUpdate(version: String, channel: Bool) {
         Task {
             do {
-                try await self.checkAndUpdate(owner: "altic-dev", repo: "Fluid-oss", includePrerelease: channel, expectedVersion: version)
+                try await self.checkAndUpdate(owner: AppIdentity.repositoryOwner, repo: AppIdentity.repositoryName, includePrerelease: channel, expectedVersion: version)
             } catch SimpleUpdateError.releaseChanged {
                 if self.availableUpdateVersion != nil, self.availableChannelRevision == self.channelRevision {
                     self.showAvailableUpdate()
@@ -577,7 +586,7 @@ final class SimpleUpdater: ObservableObject {
                 let cancelled = (error as? PMKError)?.isCancelled == true
                 self.showUpdateCheckResult(
                     title: cancelled ? "No Updates" : "Update Failed",
-                    message: cancelled ? "You're already running the latest available version of FluidVoice."
+                    message: cancelled ? "You're already running the latest available version of Just Say It."
                         : "Unable to install the update. Please try again later.\n\nError: \(error.localizedDescription)"
                 )
             }
@@ -741,7 +750,7 @@ final class SimpleUpdater: ObservableObject {
             backing: .buffered,
             defer: false
         )
-        panel.title = "Installing FluidVoice \(version)"
+        panel.title = "Installing Just Say It \(version)"
         panel.isReleasedWhenClosed = false
         panel.level = .floating
         panel.isOpaque = false
@@ -763,12 +772,12 @@ final class SimpleUpdater: ObservableObject {
         icon.imageScaling = .scaleProportionallyUpOrDown
         content.addSubview(icon)
 
-        let title = NSTextField(labelWithString: "Installing FluidVoice \(version)")
+        let title = NSTextField(labelWithString: "Installing Just Say It \(version)")
         title.frame = NSRect(x: 92, y: 76, width: 304, height: 24)
         title.font = .fluidSystemFont(ofSize: 16, weight: .semibold)
         content.addSubview(title)
 
-        let detail = NSTextField(wrappingLabelWithString: "Downloading the update. FluidVoice will restart automatically.")
+        let detail = NSTextField(wrappingLabelWithString: "Downloading the update. Just Say It will restart automatically.")
         detail.frame = NSRect(x: 92, y: 42, width: 304, height: 34)
         detail.font = .fluidSystemFont(ofSize: 13)
         detail.textColor = .secondaryLabelColor
@@ -1088,9 +1097,9 @@ final class SimpleUpdater: ObservableObject {
         installedExpectation: UpdateBundleValidator.Expectation,
         expectedVersion: String?,
         backupURL: URL,
-        isRollback: Bool
+        isRollback: Bool,
+        allowedTeamIDs teams: Set<String>
     ) throws -> PreparedInstallation {
-        let teams = Self.allowedTeamIDs
         guard isRollback || expectedVersion != nil, installedExpectation.version != nil, installedExpectation.build != nil
         else { throw UpdateBundleValidator.ValidationError.invalidExpectation }
         try Task.checkCancellation()
@@ -1181,7 +1190,8 @@ final class SimpleUpdater: ObservableObject {
                 installedExpectation: .init(bundleIdentifier: identifier, version: version, build: build),
                 expectedVersion: expectedVersion,
                 backupURL: backupURL,
-                isRollback: isRollback
+                isRollback: isRollback,
+                allowedTeamIDs: Self.allowedTeamIDs
             )
         }
         let installation = try await withTaskCancellationHandler {

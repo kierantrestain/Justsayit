@@ -39,12 +39,12 @@ nonisolated enum FluidServeSelfCheck {
     static func outcome(fromStatusJSON data: Data) -> Outcome {
         guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let meetings = object["meetings"] as? Int
-        else { return .failed("The meeting reader gave an answer FluidVoice could not read.") }
+        else { return .failed("The meeting reader gave an answer Just Say It could not read.") }
         if object["access"] is NSNull {
             return .failed(FluidServeMeetings.ReadError.accessUnavailable.localizedDescription)
         }
         guard let access = object["access"] as? Bool else {
-            return .failed("The meeting reader gave an answer FluidVoice could not read.")
+            return .failed("The meeting reader gave an answer Just Say It could not read.")
         }
         return access ? .working(meetings: meetings) : .accessOff
     }

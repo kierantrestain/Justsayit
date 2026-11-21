@@ -4,7 +4,7 @@ import Foundation
 /// what the app's buttons install, for coding agents the app has no button for.
 nonisolated enum FluidServeSkill {
     static let name = "fluidmeet"
-    static let marker = "<!-- Installed by FluidVoice. Remove it in FluidVoice: FluidMeet settings > Integrations. -->"
+    static let marker = "<!-- Installed by Just Say It. Remove it in Just Say It: Meetings settings > Integrations. -->"
     /// Markers written by earlier builds. A file carrying one is still ours, just out of date.
     static let earlierMarkers = ["<!-- Installed by FluidVoice. Remove it in FluidVoice: Settings > Experimental > Fluid Server. -->"]
 
@@ -19,10 +19,10 @@ nonisolated enum FluidServeSkill {
     }
 
     /// A short message to paste into any coding agent. The agent runs the command and files the
-    /// skill wherever it keeps skills or rules, so FluidVoice does not need to know that agent's layout.
+    /// skill wherever it keeps skills or rules, so Just Say It does not need to know that agent's layout.
     static func agentInstructions(toolPath: String) -> String {
         """
-        Add a skill so you can read my FluidVoice meetings.
+        Add a skill so you can read my Just Say It meetings.
 
         Run this command. It prints a skill file:
 
@@ -38,14 +38,14 @@ nonisolated enum FluidServeSkill {
         """
         ---
         name: \(self.name)
-        description: "Read the user's FluidVoice meetings - list recent meetings, read a transcript or a saved summary, or search what was said. \
+        description: "Read the user's Just Say It meetings - list recent meetings, read a transcript or a saved summary, or search what was said. \
         Use when the user mentions a meeting or call they recorded, asks what was discussed or decided, or wants notes or action items."
         ---
         \(self.marker)
 
-        # FluidVoice meetings
+        # Just Say It meetings
 
-        FluidVoice records and transcribes meetings on this Mac. `\(FluidServeMeetings.toolName)` reads them. It is read-only and nothing else needs to be running.
+        Just Say It records and transcribes meetings on this Mac. `\(FluidServeMeetings.toolName)` reads them. It is read-only and nothing else needs to be running.
 
         Call it by its full path, quoted exactly as shown:
 
@@ -57,7 +57,7 @@ nonisolated enum FluidServeSkill {
 
         - `meet list [--since 7d] [--limit N]` - recent meetings, newest first: id, date, length, speakers, title, saved summaries.
         - `meet show <id|latest> [--from MM:SS] [--to MM:SS]` - the transcript, with speaker names and timestamps.
-        - `meet summary <id|latest> [--style NAME]` - summaries already written in FluidVoice. One marked outdated predates a transcript or speaker name change; say so when you use it.
+        - `meet summary <id|latest> [--style NAME]` - summaries already written in Just Say It. One marked outdated predates a transcript or speaker name change; say so when you use it.
         - `meet search [--since 7d] [--limit N] text` - lines that mention the text, grouped by meeting.
         - `--json` on `list` or `show` gives structured output.
 
@@ -73,11 +73,11 @@ nonisolated enum FluidServeSkill {
 
         ## If it does not work
 
-        - It says meetings are not shared yet: ask the user to open FluidVoice, go to FluidMeet settings > Integrations, and add this agent there. Do not look for another way to read the meetings.
+        - It says meetings are not shared yet: ask the user to open Just Say It, go to Meetings settings > Integrations, and add this agent there. Do not look for another way to read the meetings.
         - It cannot verify sharing permission: the preference may be unset or a sandbox may prevent reading it. Ask the user to check Integrations. \
         If sharing is already on, use the agent's normal permission-approval flow before retrying this same command with the required access. \
         Do not disable the sandbox, change sharing settings, or read meeting files directly to bypass the check.
-        - The command is not found: FluidVoice was moved or removed. Ask the user to open FluidMeet settings > Integrations in FluidVoice and press Update skill.
+        - The command is not found: Just Say It was moved or removed. Ask the user to open Meetings settings > Integrations in Just Say It and press Update skill.
         """ + "\n"
     }
 }

@@ -37,7 +37,7 @@ nonisolated enum FluidServeSkillInstaller {
         case installed
         /// Ours, but written by an older build or for an app that has since moved.
         case needsUpdate
-        /// A `fluidmeet` skill that FluidVoice did not write.
+        /// A `fluidmeet` skill that Just Say It did not write.
         case foreign
     }
 
@@ -48,9 +48,9 @@ nonisolated enum FluidServeSkillInstaller {
         var errorDescription: String? {
             switch self {
             case let .foreignSkill(path):
-                return "A different \(FluidServeSkillInstaller.skillName) skill is already at \(path). FluidVoice left it untouched."
+                return "A different \(FluidServeSkillInstaller.skillName) skill is already at \(path). Just Say It left it untouched."
             case .toolMissing:
-                return "This build of FluidVoice does not include \(FluidServeMeetings.toolName)."
+                return "This build of Just Say It does not include \(FluidServeMeetings.toolName)."
             }
         }
     }

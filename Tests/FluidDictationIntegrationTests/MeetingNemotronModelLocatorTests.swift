@@ -92,9 +92,9 @@ final class MeetingNemotronModelLocatorTests: XCTestCase {
 
     func testHomeDirectoryCapitalizationDoesNotLookLikeASymlink() throws {
         let root = try self.makeTempDirectory()
-        let home = root.appendingPathComponent("gabriel/Library/Application Support/FluidVoice/MeetingModels")
+        let home = root.appendingPathComponent("gabriel/Library/Application Support/JustSayIt/MeetingModels")
         let package = try self.makeFakePackage(at: home)
-        let alternate = root.appendingPathComponent("Gabriel/Library/Application Support/FluidVoice/MeetingModels")
+        let alternate = root.appendingPathComponent("Gabriel/Library/Application Support/JustSayIt/MeetingModels")
             .appendingPathComponent(package.lastPathComponent, isDirectory: true)
         guard FileManager.default.fileExists(atPath: alternate.path) else {
             throw XCTSkip("Capitalization aliases require a case-insensitive volume")

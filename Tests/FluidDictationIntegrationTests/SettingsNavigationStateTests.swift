@@ -8,7 +8,7 @@ final class SettingsNavigationStateTests: XCTestCase {
     func testFluidMeetHasASettingsDestinationEvenWhenDisabled() {
         var state = SettingsNavigationState()
         state.present(.fluidMeet, returningTo: .history)
-        XCTAssertEqual(state.selectedSection?.title, "FluidMeet Settings")
+        XCTAssertEqual(state.selectedSection?.title, "Meetings Settings")
         XCTAssertEqual(SettingsSection.fluidMeet.searchTarget, .fluidMeet)
         XCTAssertEqual(SettingsSearchTarget.fluidMeet.section, .fluidMeet)
         XCTAssertEqual(SettingsSearchIndex.results(for: "disable meetings").first?.section, .fluidMeet)
@@ -153,7 +153,7 @@ final class SettingsNavigationStateTests: XCTestCase {
     func testSettingsSectionsHaveStableTitlesAndIcons() {
         XCTAssertEqual(
             SettingsSection.allCases.map(\.title),
-            ["General", "FluidMeet Settings", "Dictation", "Dictation Formatting", "Shortcuts", "Notifications", "Audio", "Overlay", "Data & Diagnostics", "Experimental"]
+            ["General", "Meetings Settings", "Dictation", "Dictation Formatting", "Shortcuts", "Notifications", "Audio", "Overlay", "Data & Diagnostics", "Experimental"]
         )
         XCTAssertTrue(SettingsSection.allCases.allSatisfy { !$0.systemImage.isEmpty })
         XCTAssertEqual(SettingsSection.overlay.systemImage, "rectangle.on.rectangle")

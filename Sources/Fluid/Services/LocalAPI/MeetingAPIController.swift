@@ -64,7 +64,7 @@ struct MeetingAPIController: LocalAPIRouteHandler {
             }
             return LocalAPI.json(MeetingListResponse(count: items.count, items: items))
         } catch {
-            return LocalAPI.error("Meetings are unavailable. Retry from FluidMeet in FluidVoice.", status: 503)
+            return LocalAPI.error("Meetings are unavailable. Retry from Meetings in Just Say It.", status: 503)
         }
     }
 
@@ -110,7 +110,7 @@ struct MeetingAPIController: LocalAPIRouteHandler {
             }
             session = savedSession
         } catch {
-            return LocalAPI.error("Meeting is unavailable. Retry from FluidMeet in FluidVoice.", status: 503)
+            return LocalAPI.error("Meeting is unavailable. Retry from Meetings in Just Say It.", status: 503)
         }
 
         switch format {

@@ -6,6 +6,10 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -38,6 +42,7 @@ jobs:
             - 'Package.resolved'
             - 'Info.plist'
             - 'Fluid.entitlements'
+            - 'scripts/package-preview.sh'
             - '.swiftlint.yml'
             - '.swiftformat'
             - '.github/workflows/build.yml'
@@ -91,10 +96,10 @@ jobs:
         fi
 
   build:
-    name: Build FluidVoice
+    name: Test Just Say It
     if: needs.changes.outputs.relevant == 'true' && needs.lint.result == 'success'
     needs: [changes, lint]
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 20
     
     steps:
@@ -129,7 +134,7 @@ jobs:
       if: always()
       run: |
         mkdir -p build/test-results/crashes
-        find "$HOME/Library/Logs/DiagnosticReports" -maxdepth 1 -type f -name 'FluidVoice*' -exec cp {} build/test-results/crashes/ \; 2>/dev/null || true
+        find "$HOME/Library/Logs/DiagnosticReports" -maxdepth 1 -type f -name 'Just Say It*' -exec cp {} build/test-results/crashes/ \; 2>/dev/null || true
 
     - name: Save test diagnostics
       if: always()
@@ -139,3 +144,26 @@ jobs:
         path: build/test-results
         if-no-files-found: ignore
         retention-days: 7
+
+  preview:
+    name: Package macOS preview
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-26
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Build and sign Apple Silicon preview
+      run: scripts/package-preview.sh
+
+    - name: Save macOS preview
+      uses: actions/upload-artifact@v4
+      with:
+        name: Just-Say-It-macOS-arm64
+        path: build/preview/Just-Say-It-macOS-arm64.zip
+        if-no-files-found: error
+        retention-days: 30

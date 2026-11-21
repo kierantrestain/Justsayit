@@ -8,7 +8,7 @@ nonisolated enum LocalParakeetModelLoader {
         case missingProPreprocessor
 
         var errorDescription: String? {
-            "The Fluid Speech Pro audio processor is missing from this app. Reinstall FluidVoice to restore it."
+            "The Fluid Speech Pro audio processor is missing from this app. Reinstall Just Say It to restore it."
         }
     }
 

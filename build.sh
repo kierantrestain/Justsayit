@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# FluidVoice Build Profile Router
+# Just Say It build profile router
 # Defaults to the public OSS build, which skips private Fluid Intelligence.
 #
 # Usage:
@@ -14,7 +14,7 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROFILE="${1:-${BUILD_PROFILE:-public}}"
 PRIVATE_FI_BUILD_SCRIPT="${PROJECT_DIR}/build_with_FI_incremental.sh"
-DERIVED_DATA_PATH="${FLUIDVOICE_DERIVED_DATA_PATH:-${PROJECT_DIR}/DerivedData}"
+DERIVED_DATA_PATH="${JUSTSAYIT_DERIVED_DATA_PATH:-${PROJECT_DIR}/DerivedData}"
 
 resolve_development_team() {
     local identity
@@ -23,8 +23,8 @@ resolve_development_team() {
         | awk 'NR == 1 { identity = $0 } END { print identity }')"
     [ -n "${identity}" ] || return 0
 
-    if [ -n "${FLUIDVOICE_DEVELOPMENT_TEAM:-}" ]; then
-        printf '%s\n' "${FLUIDVOICE_DEVELOPMENT_TEAM}"
+    if [ -n "${JUSTSAYIT_DEVELOPMENT_TEAM:-}" ]; then
+        printf '%s\n' "${JUSTSAYIT_DEVELOPMENT_TEAM}"
         return
     fi
 
@@ -81,7 +81,7 @@ run_public_build() {
     cd "${PROJECT_DIR}"
 
     if [ "${signing_mode}" = "unsigned" ]; then
-        echo "Running unsigned public FluidVoice build..."
+        echo "Running unsigned public Just Say It build..."
         echo "Accessibility, Screen Recording, and microphone permissions may need to be granted again after rebuilding."
         exec xcodebuild "${build_args[@]}" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
     fi
@@ -89,9 +89,9 @@ run_public_build() {
     signing_identity_hash="$(resolve_development_identity_hash)"
     development_team="$(resolve_development_team)"
     if [ -z "${development_team}" ]; then
-        if [ -n "${FLUIDVOICE_DEVELOPMENT_TEAM:-}" ]; then
-            printf >&2 'FLUIDVOICE_DEVELOPMENT_TEAM is set to %s, but no Apple Development signing identity was found.\n\n' \
-                "${FLUIDVOICE_DEVELOPMENT_TEAM}"
+        if [ -n "${JUSTSAYIT_DEVELOPMENT_TEAM:-}" ]; then
+            printf >&2 'JUSTSAYIT_DEVELOPMENT_TEAM is set to %s, but no Apple Development signing identity was found.\n\n' \
+                "${JUSTSAYIT_DEVELOPMENT_TEAM}"
             printf >&2 '%s\n\n' \
                 "The team override selects an installed signing identity; it does not replace a certificate."
         else
@@ -105,7 +105,7 @@ For stable Accessibility permission across rebuilds, add any Apple Account in:
 Then open Manage Certificates and create an Apple Development certificate.
 
 A free Personal Team is sufficient for local development. If you have multiple
-teams, set FLUIDVOICE_DEVELOPMENT_TEAM to the desired 10-character Team ID.
+teams, set JUSTSAYIT_DEVELOPMENT_TEAM to the desired 10-character Team ID.
 
 To build without signing instead, run:
   ./build.sh unsigned
@@ -120,11 +120,11 @@ EOF
         exit 1
     fi
 
-    echo "Running signed public FluidVoice build..."
-    echo "Build product: ${DERIVED_DATA_PATH}/Build/Products/Debug/FluidVoice Debug.app"
+    echo "Running signed public Just Say It build..."
+    echo "Build product: ${DERIVED_DATA_PATH}/Build/Products/Debug/Just Say It Debug.app"
     xcodebuild "${build_args[@]}" DEVELOPMENT_TEAM="${development_team}"
 
-    app_path="${DERIVED_DATA_PATH}/Build/Products/Debug/FluidVoice Debug.app"
+    app_path="${DERIVED_DATA_PATH}/Build/Products/Debug/Just Say It Debug.app"
     ctranscribe_framework="${app_path}/Contents/Frameworks/CTranscribe.framework"
     if [ ! -d "${app_path}" ]; then
         echo "Signed build product is missing: ${app_path}" >&2
@@ -169,7 +169,7 @@ EOF
         --options runtime --timestamp=none \
         --preserve-metadata=identifier,requirements,flags "${ctranscribe_framework}"
 
-    entitlements_file="$(mktemp -t fluidvoice-entitlements)"
+    entitlements_file="$(mktemp -t justsayit-entitlements)"
     if ! codesign --display --entitlements :- "${app_path}" > "${entitlements_file}" 2>/dev/null; then
         rm -f "${entitlements_file}"
         echo "Unable to read existing app entitlements: ${app_path}" >&2

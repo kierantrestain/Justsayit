@@ -242,12 +242,12 @@ enum SettingsSearchIndex {
     }
 
     private static let entries: [Entry] = [
-        .init(target: .fluidMeet, title: "Enable FluidMeet", terms: ["meetings recording disable turn off enable"]),
+        .init(target: .fluidMeet, title: "Enable Meetings", terms: ["meetings recording disable turn off enable"]),
         .init(target: .general, title: "General", terms: ["app settings preferences"]),
         .init(
             target: .launchAtStartup,
             title: "Launch at startup",
-            terms: ["Automatically start FluidVoice when you log in", "login startup boot open"]
+            terms: ["Automatically start Just Say It when you log in", "login startup boot open"]
         ),
         .init(
             target: .showWindowAtLogin,
@@ -301,7 +301,7 @@ enum SettingsSearchIndex {
             title: "Paste Last Transcription",
             terms: ["reinsert recent text hotkey shortcut clipboard"]
         ),
-        .init(target: .meetingRecordingShortcut, title: "Meeting Recording Shortcut", terms: ["FluidMeet start stop toggle recording keyboard hotkey"]),
+        .init(target: .meetingRecordingShortcut, title: "Meeting Recording Shortcut", terms: ["Meetings start stop toggle recording keyboard hotkey"]),
         .init(target: .activationMode, title: "Activation Mode", terms: ["hold toggle hotkey behavior"]),
         .init(target: .holdSpaceToMute, title: "Hold Space to Mute", terms: ["pause microphone spacebar resume silence"]),
         .init(

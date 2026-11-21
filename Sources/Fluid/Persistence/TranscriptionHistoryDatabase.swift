@@ -127,8 +127,8 @@ final class TranscriptionHistoryWriter: @unchecked Sendable {
     init(defaults: UserDefaults = .standard, url: URL? = nil, otherInstallDefaults: [UserDefaults] = []) {
         self.defaults = defaults
         self.url = url ?? URL(fileURLWithPath: NSHomeDirectory())
-            .appendingPathComponent("Library/Application Support/FluidVoice/TranscriptionHistory.sqlite3")
-        self.otherInstallDefaults = url != nil ? otherInstallDefaults : ["com.FluidApp.app", "com.FluidApp.app.debug"]
+            .appendingPathComponent("Library/Application Support/JustSayIt/TranscriptionHistory.sqlite3")
+        self.otherInstallDefaults = url != nil ? otherInstallDefaults : ["com.kierantrestain.justsayit", "com.kierantrestain.justsayit.debug"]
             .filter { $0 != Bundle.main.bundleIdentifier }
             .compactMap { UserDefaults(suiteName: $0) }
     }
@@ -205,7 +205,7 @@ final class TranscriptionHistoryWriter: @unchecked Sendable {
             do {
                 _ = try JSONDecoder().decode([TranscriptionHistoryEntry].self, from: data)
                 throw NSError(domain: "HistoryRecovery", code: 1, userInfo: [
-                    NSLocalizedDescriptionKey: "Older history can be imported. Restart FluidVoice before resuming audio cleanup.",
+                    NSLocalizedDescriptionKey: "Older history can be imported. Restart Just Say It before resuming audio cleanup.",
                 ])
             } catch is DecodingError {
                 // Only unreadable data takes this explicit recovery path. Valid history is imported at startup.
@@ -239,7 +239,7 @@ final class TranscriptionHistoryWriter: @unchecked Sendable {
         }
         guard snapshots.allSatisfy({ $0.0.data(forKey: self.legacyKey) == $0.1 }) else {
             throw NSError(domain: "HistoryRecovery", code: 2, userInfo: [
-                NSLocalizedDescriptionKey: "Older history changed while saving its recovery copy. Close other FluidVoice builds and try again. No history was removed.",
+                NSLocalizedDescriptionKey: "Older history changed while saving its recovery copy. Close other Just Say It builds and try again. No history was removed.",
             ])
         }
         for (source, _) in snapshots {

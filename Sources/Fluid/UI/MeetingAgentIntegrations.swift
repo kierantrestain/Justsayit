@@ -36,7 +36,7 @@ final class FluidServeSettingsModel: ObservableObject {
     private var issueAgent: Agent?
     /// True once the instructions for another agent are on the clipboard, so the row can say so.
     @Published private(set) var copiedAgentInstructions = false
-    /// Whether meetings are shared with agents FluidVoice cannot see. Those agents keep their own
+    /// Whether meetings are shared with agents Just Say It cannot see. Those agents keep their own
     /// copy of the skill, so only the user can say when this ends.
     @Published private(set) var otherAgentsShared = false
 
@@ -249,7 +249,7 @@ final class FluidServeSettingsModel: ObservableObject {
     }
 }
 
-/// The coding-agent rows on FluidMeet settings > Integrations: add the `fluidmeet` skill to
+/// The coding-agent rows on Meetings settings > Integrations: add the `fluidmeet` skill to
 /// Claude Code or Codex, or copy instructions for any other agent.
 struct MeetingAgentIntegrations: View {
     @Environment(\.theme) private var theme
@@ -270,7 +270,7 @@ struct MeetingAgentIntegrations: View {
                         Divider()
                         self.otherAgentsRow
                     } else {
-                        self.statusLabel("This build of FluidVoice cannot share meetings with coding agents.", symbol: "exclamationmark.circle.fill", color: .orange)
+                        self.statusLabel("This build of Just Say It cannot share meetings with coding agents.", symbol: "exclamationmark.circle.fill", color: .orange)
                     }
                 }
             }

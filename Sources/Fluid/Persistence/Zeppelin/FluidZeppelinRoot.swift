@@ -1,7 +1,7 @@
 import Foundation
 import ZeppelinEmbed
 
-/// The Zeppelin database at `~/Library/Application Support/FluidVoice/zeppelin/`.
+/// The Zeppelin database at `~/Library/Application Support/JustSayIt/zeppelin/`.
 ///
 /// Each namespace is one directory under the root, created on demand and independent
 /// of the others. Every namespace here is a derived copy of a store the app already
@@ -21,7 +21,7 @@ actor FluidZeppelinRoot {
     init(root: URL? = nil) {
         self.root = root ?? FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("FluidVoice/zeppelin", isDirectory: true)
+            .appendingPathComponent("JustSayIt/zeppelin", isDirectory: true)
     }
 
     /// Opens a namespace, or returns the handle already open for it.

@@ -216,14 +216,14 @@ struct SettingsView: View {
                 if self.selectedSection == .fluidMeet {
                     ThemedCard(style: .standard) {
                         VStack(alignment: .leading, spacing: 14) {
-                            Label("FluidMeet Settings", systemImage: "person.2")
+                            Label("Meetings Settings", systemImage: "person.2")
                                 .font(.fluidSystem(.headline))
                                 .foregroundStyle(.primary)
                             self.settingsToggleRow(
-                                title: "Enable FluidMeet",
-                                description: "Record and transcribe meetings. Turning this off hides FluidMeet and stops meeting detection. Your saved meetings are kept.",
+                                title: "Enable Meetings",
+                                description: "Record and transcribe meetings. Turning this off hides Meetings and stops meeting detection. Your saved meetings are kept.",
                                 footnote: self.appServices.hasActiveMeetingSessionActivity
-                                    ? "Finish the current meeting recording or processing before turning FluidMeet off." : nil,
+                                    ? "Finish the current meeting recording or processing before turning Meetings off." : nil,
                                 isOn: Binding(
                                     get: { self.settings.fluidMeetEnabled },
                                     set: { self.appServices.setFluidMeetEnabled($0) }
@@ -248,7 +248,7 @@ struct SettingsView: View {
                             // Launch at startup
                             self.settingsToggleRow(
                                 title: "Launch at startup",
-                                description: "Automatically start FluidVoice when you log in",
+                                description: "Automatically start Just Say It when you log in",
                                 footnote: self.settings.launchAtStartupStatusMessage,
                                 errorMessage: self.settings.launchAtStartupErrorMessage,
                                 isOn: self.launchAtStartupBinding
@@ -259,7 +259,7 @@ struct SettingsView: View {
                             // Show window when launched at login
                             self.settingsToggleRow(
                                 title: "Show window when launched at login",
-                                description: "When off, FluidVoice starts silently in the menu bar at login. Opening the app yourself always shows the window.",
+                                description: "When off, Just Say It starts silently in the menu bar at login. Opening the app yourself always shows the window.",
                                 isOn: Binding(
                                     get: { SettingsStore.shared.showMainWindowAtLoginLaunch },
                                     set: { SettingsStore.shared.showMainWindowAtLoginLaunch = $0 }
@@ -271,7 +271,7 @@ struct SettingsView: View {
                             // Hide from Dock & App Switcher
                             self.settingsToggleRow(
                                 title: "Hide from Dock & App Switcher",
-                                description: "Keep FluidVoice in the menu bar only (hides Dock icon and Cmd+Tab entry)",
+                                description: "Keep Just Say It in the menu bar only (hides Dock icon and Cmd+Tab entry)",
                                 footnote: "Note: May require app restart to take effect.",
                                 isOn: Binding(
                                     get: { SettingsStore.shared.hideFromDockAndAppSwitcher },
@@ -596,7 +596,7 @@ struct SettingsView: View {
                                                     title: "Start / Stop Meeting",
                                                     description: self.settings.fluidMeetEnabled
                                                         ? "Choose sources, press again to record, or stop an active meeting"
-                                                        : "Enable FluidMeet in FluidMeet Settings to use this shortcut"
+                                                        : "Enable Meetings in Meetings Settings to use this shortcut"
                                                 ),
                                                 shortcut: self.settings.meetingRecordingHotkeyShortcut,
                                                 isRecording: self.isRecording(.meeting),
@@ -823,7 +823,7 @@ struct SettingsView: View {
 
                                         self.optionToggleRow(
                                             title: "Pause Media During Transcription",
-                                            description: "Automatically pause currently playing audio/video when transcription starts. Resumes only if FluidVoice paused it.",
+                                            description: "Automatically pause currently playing audio/video when transcription starts. Resumes only if Just Say It paused it.",
                                             isOn: Binding(
                                                 get: { SettingsStore.shared.pauseMediaDuringTranscription },
                                                 set: { SettingsStore.shared.pauseMediaDuringTranscription = $0 }
@@ -836,24 +836,31 @@ struct SettingsView: View {
                                             .settingsSearchTarget(.dictionarySuggestions)
                                         Divider().opacity(0.2)
 
-                                        self.optionToggleRow(
-                                            title: "Share Detailed Anonymous Analytics",
-                                            description: "Share anonymous daily feature, insertion performance, onboarding, and model metrics. " +
-                                                "When off, FluidVoice still records the anonymous daily activity signal and, in beta builds, daily ASR and Fluid Intelligence timing summaries. " +
-                                                "Never includes transcription text or prompts.",
-                                            isOn: self.detailedAnalyticsToggleBinding
-                                        )
-                                        .settingsSearchTarget(.analyticsPrivacy)
+                                        if AnalyticsConfig.fromBundle().isConfigured {
+                                            self.optionToggleRow(
+                                                title: "Share Detailed Anonymous Analytics",
+                                                description: "Share anonymous daily feature, insertion performance, onboarding, and model metrics. " +
+                                                    "When off, Just Say It still records the anonymous daily activity signal and, in beta builds, daily ASR and Fluid Intelligence timing summaries. " +
+                                                    "Never includes transcription text or prompts.",
+                                                isOn: self.detailedAnalyticsToggleBinding
+                                            )
+                                            .settingsSearchTarget(.analyticsPrivacy)
 
-                                        HStack {
-                                            Button("What we collect") {
-                                                self.showAnalyticsPrivacy = true
+                                            HStack {
+                                                Button("What we collect") {
+                                                    self.showAnalyticsPrivacy = true
+                                                }
+                                                .buttonStyle(.link)
+
+                                                Spacer()
                                             }
-                                            .buttonStyle(.link)
-
-                                            Spacer()
+                                            .padding(.top, 6)
+                                        } else {
+                                            Text("This build sends no usage analytics.")
+                                                .font(self.theme.typography.bodySmall)
+                                                .foregroundStyle(self.theme.palette.secondaryText)
+                                                .settingsSearchTarget(.analyticsPrivacy)
                                         }
-                                        .padding(.top, 6)
                                     }
                                     .padding(12)
                                 }
@@ -1022,7 +1029,7 @@ struct SettingsView: View {
 
                             self.optionToggleRow(
                                 title: "Microphone Changes",
-                                description: "Show an alert when FluidVoice changes or loses its microphone.",
+                                description: "Show an alert when Just Say It changes or loses its microphone.",
                                 isOn: Binding(
                                     get: { self.settings.showMicrophoneChangeAlerts },
                                     set: { enabled in
@@ -1039,7 +1046,7 @@ struct SettingsView: View {
 
                             self.optionToggleRow(
                                 title: "Paste Check",
-                                description: "Show a card when FluidVoice can't confirm that pasted text landed.",
+                                description: "Show a card when Just Say It can't confirm that pasted text landed.",
                                 isOn: Binding(
                                     get: { self.settings.showPasteCheckAlerts },
                                     set: { self.settings.showPasteCheckAlerts = $0 }
@@ -1562,7 +1569,7 @@ struct SettingsView: View {
     }
 
     private func openIssueReportingPage() {
-        guard let url = URL(string: "https://github.com/altic-dev/Fluid-oss/issues/new/choose") else { return }
+        guard let url = AppIdentity.githubURL("issues/new") else { return }
         NSWorkspace.shared.open(url)
     }
 
@@ -1585,7 +1592,7 @@ struct SettingsView: View {
 
             self.presentInfoAlert(
                 title: "Backup Exported",
-                message: "Saved your FluidVoice backup to:\n\(url.path)"
+                message: "Saved your Just Say It backup to:\n\(url.path)"
             )
         } catch {
             self.presentErrorAlert(
@@ -1686,7 +1693,7 @@ struct SettingsView: View {
             let confirm = NSAlert()
             confirm.messageText = "Prune saved audio?"
             confirm.informativeText = """
-            This budget is below current audio usage. FluidVoice will delete the oldest saved audio first and keep transcript history.
+            This budget is below current audio usage. Just Say It will delete the oldest saved audio first and keep transcript history.
             """
             confirm.alertStyle = .warning
             confirm.addButton(withTitle: "Apply and Prune")
@@ -2388,7 +2395,7 @@ private extension SettingsView {
             )
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-            Text("FluidVoice tries microphones from top to bottom. Drag to reorder; unavailable devices keep their place.")
+            Text("Just Say It tries microphones from top to bottom. Drag to reorder; unavailable devices keep their place.")
                 .font(self.theme.typography.bodySmall)
                 .foregroundStyle(self.settingsSecondaryText)
                 .fixedSize(horizontal: false, vertical: true)
@@ -2575,7 +2582,7 @@ private extension SettingsView {
             )
         } else {
             self.microphoneQualityGuidanceRow(
-                message: "This order applies only to FluidVoice and does not change your macOS input.",
+                message: "This order applies only to Just Say It and does not change your macOS input.",
                 systemImage: "info.circle",
                 color: self.settingsSecondaryText
             )
@@ -2978,7 +2985,7 @@ private struct DictionarySuggestionsSettingsRow: View {
                     Text("Learn from my corrections")
                         .font(self.theme.typography.bodyStrong)
                         .foregroundStyle(self.theme.palette.primaryText)
-                    Text("If you retype a word FluidVoice got wrong, it asks to add the right spelling to your dictionary.")
+                    Text("If you retype a word Just Say It got wrong, it asks to add the right spelling to your dictionary.")
                         .font(self.theme.typography.bodySmall)
                         .foregroundStyle(self.theme.palette.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)
@@ -3066,16 +3073,11 @@ struct AnalyticsConfirmationView: View {
 
     private var contactInfoText: AttributedString {
         var text = AttributedString(
-            "If you have any concerns we would love to hear about it, please email alticdev@gmail.com or file an issue in our GitHub."
+            "For questions about analytics, open an issue on GitHub."
         )
 
-        if let emailRange = text.range(of: "alticdev@gmail.com") {
-            text[emailRange].link = URL(string: "mailto:alticdev@gmail.com")
-            text[emailRange].foregroundColor = self.theme.palette.accent
-        }
-
         if let githubRange = text.range(of: "GitHub") {
-            text[githubRange].link = URL(string: "https://github.com/altic-dev/FluidVoice")
+            text[githubRange].link = AppIdentity.githubURL("issues/new")
             text[githubRange].foregroundColor = self.theme.palette.accent
         }
 
@@ -3243,7 +3245,7 @@ private extension SettingsView {
                 }
 
                 Button("Release Notes") {
-                    if let url = URL(string: "https://github.com/altic-dev/Fluid-oss/releases") {
+                    if let url = AppIdentity.githubURL("releases") {
                         NSWorkspace.shared.open(url)
                     }
                 }
@@ -3275,7 +3277,7 @@ private extension SettingsView {
 
     private var rollbackControls: some View {
         VStack(alignment: .leading, spacing: self.theme.metrics.spacing.sm) {
-            FluidManagementRow(title: "Roll back", detail: "Choose an earlier version. FluidVoice will restart.") {
+            FluidManagementRow(title: "Roll back", detail: "Choose an earlier version. Just Say It will restart.") {
                 HStack(spacing: self.theme.metrics.spacing.sm) {
                     FluidDropdownPicker(
                         "Rollback version",
@@ -3332,8 +3334,8 @@ private extension SettingsView {
         defer { self.isLoadingRollbackVersions = false }
         do {
             let options = try await self.updater.fetchRecentReleaseBuildOptions(
-                owner: "altic-dev",
-                repo: "Fluid-oss",
+                owner: AppIdentity.repositoryOwner,
+                repo: AppIdentity.repositoryName,
                 limit: 12,
                 includePrerelease: true,
                 olderThanCurrent: true
@@ -3359,7 +3361,7 @@ private extension SettingsView {
         let infoText = targetVersion
         let confirm = NSAlert()
         confirm.messageText = "Roll back to \(infoText)?"
-        confirm.informativeText = "This will restore a previous app version and relaunch FluidVoice."
+        confirm.informativeText = "This will restore a previous app version and relaunch Just Say It."
         confirm.alertStyle = .warning
         confirm.addButton(withTitle: "Roll Back")
         confirm.addButton(withTitle: "Cancel")
@@ -3383,7 +3385,7 @@ private extension SettingsView {
                 await MainActor.run {
                     let success = NSAlert()
                     success.messageText = "Rollback Successful"
-                    success.informativeText = "Rolled back to \(targetVersion). FluidVoice will relaunch shortly."
+                    success.informativeText = "Rolled back to \(targetVersion). Just Say It will relaunch shortly."
                     success.alertStyle = .informational
                     success.addButton(withTitle: "Report Bug")
                     success.addButton(withTitle: "OK")
@@ -3464,7 +3466,7 @@ private struct LegacyHistoryRecoveryControls: View {
         let alert = NSAlert()
         alert.messageText = "Resume audio cleanup?"
         alert.informativeText = """
-        Restart FluidVoice first to import any readable older history. If this warning remains, save the unreadable history and all saved audio to a recovery folder and resume cleanup.
+        Restart Just Say It first to import any readable older history. If this warning remains, save the unreadable history and all saved audio to a recovery folder and resume cleanup.
 
         Saved transcripts stay intact. Cleanup may remove older audio from the app, but the recovery copy keeps every saved recording and stays outside your audio budget.
         """

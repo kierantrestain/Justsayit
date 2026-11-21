@@ -585,7 +585,7 @@ final class ASRService: ObservableObject {
         }
         let rms = Float(sqrt(totalSquareSum / Double(samples.count)))
 
-        // Calibrated conservatively against real FluidVoice captures. Requiring
+        // Calibrated conservatively against real Just Say It captures. Requiring
         // all three conditions keeps quiet speech and short words on the ASR path.
         let shouldSkip = peak < 0.01 && rms < 0.002 && maximumFrameRMS < 0.0045
         return ShortAudioSilenceAssessment(
@@ -5522,7 +5522,7 @@ final class ASRService: ObservableObject {
 
     private func handleDefaultInputChanged() {
         // Microphone priority is app-owned. A macOS default-input change must
-        // never move or restart FluidVoice's selected microphone.
+        // never move or restart Just Say It's selected microphone.
     }
 
     private func handleDefaultOutputChanged() {
@@ -6992,7 +6992,7 @@ final class ASRService: ObservableObject {
         }
         guard !model.usesAppleLogo, model != .qwen3Asr else {
             throw NSError(domain: "ASRService", code: -2003, userInfo: [
-                NSLocalizedDescriptionKey: "This model cannot be deleted from FluidVoice.",
+                NSLocalizedDescriptionKey: "This model cannot be deleted from Just Say It.",
             ])
         }
         let activityLease = try self.acquireExclusiveActivity(.modelMaintenance)
@@ -7843,7 +7843,7 @@ private extension ASRService {
 
     static var streamingRecoveryMessage: String {
         "Speech recognition took too long to finish. This recording could not be transcribed. " +
-            "Wait for the model to recover, or restart FluidVoice before recording again."
+            "Wait for the model to recover, or restart Just Say It before recording again."
     }
 
     func presentStreamingRecoveryError() {

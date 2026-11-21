@@ -1,6 +1,6 @@
 import Foundation
 
-// `fv-serve` ships inside FluidVoice.app/Contents/Helpers. It answers one question and exits:
+// `fv-serve` ships inside Just Say It.app/Contents/Helpers. It answers one question and exits:
 // no server, no model, no audio. The switch that allows it lives in the app's own preferences.
 
 /// Where this program really is, asked of the loader. Not `argv[0]`, which is just "fv-serve" when

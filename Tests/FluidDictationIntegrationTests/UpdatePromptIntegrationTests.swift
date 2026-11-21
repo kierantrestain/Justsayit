@@ -119,7 +119,7 @@ final class UpdatePromptIntegrationTests: XCTestCase {
         }
         let delegate = AppDelegate()
         XCTAssertTrue(delegate.isMainWindow(window(title: "Stats", identifier: "main-AppWindow-1")))
-        XCTAssertTrue(delegate.isMainWindow(window(title: "FluidVoice", identifier: nil)))
+        XCTAssertTrue(delegate.isMainWindow(window(title: "Just Say It", identifier: nil)))
         XCTAssertFalse(delegate.isMainWindow(window(title: "Stats", identifier: nil)), "another titled window is not the main window")
         XCTAssertFalse(delegate.isMainWindow(window(title: "Stats", identifier: "main-AppWindow-1", style: [.borderless])))
         let floating = window(title: "Stats", identifier: "main-AppWindow-1")

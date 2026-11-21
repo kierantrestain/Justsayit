@@ -64,7 +64,7 @@ nonisolated struct DictionaryCorrectionExample {
 actor DictionaryCorrectionArchive {
     static let shared = DictionaryCorrectionArchive()
     static let directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("FluidVoice/Dictionary/TrainingExamples", isDirectory: true)
+        .appendingPathComponent("JustSayIt/Dictionary/TrainingExamples", isDirectory: true)
 
     struct Metadata: Codable {
         let schemaVersion: Int

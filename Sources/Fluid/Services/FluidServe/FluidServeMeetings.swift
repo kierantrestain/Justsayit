@@ -9,7 +9,7 @@ import Foundation
 nonisolated enum FluidServeMeetings {
     static let toolName = "fv-serve"
     static let accessDefaultsKey = "FluidServeMeetingAccessEnabled"
-    static let releaseBundleIdentifier = "com.FluidApp.app"
+    static let releaseBundleIdentifier = "com.kierantrestain.justsayit"
 
     struct Speaker: Decodable, Equatable {
         var id: UUID
@@ -98,10 +98,10 @@ nonisolated enum FluidServeMeetings {
         var errorDescription: String? {
             switch self {
             case .accessOff:
-                return "FluidVoice is not sharing meetings with any agent yet. In FluidVoice, open FluidMeet settings > Integrations and add your agent."
+                return "Just Say It is not sharing meetings with any agent yet. In Just Say It, open Meetings settings > Integrations and add your agent."
             case .accessUnavailable:
-                return "Could not verify FluidVoice meeting-sharing permission. The setting may be unset or blocked by a sandbox. "
-                    + "Check FluidMeet settings > Integrations; if sharing is on, check the agent's sandbox permissions. No meeting data was read."
+                return "Could not verify Just Say It meeting-sharing permission. The setting may be unset or blocked by a sandbox. "
+                    + "Check Meetings settings > Integrations; if sharing is on, check the agent's sandbox permissions. No meeting data was read."
             case .noMeetings:
                 return "No finished meetings with a transcript were found."
             case let .notFound(reference):
@@ -116,7 +116,7 @@ nonisolated enum FluidServeMeetings {
         let applicationSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? fileManager.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support", isDirectory: true)
         return applicationSupport
-            .appendingPathComponent("FluidVoice", isDirectory: true)
+            .appendingPathComponent("JustSayIt", isDirectory: true)
             .appendingPathComponent("Meetings", isDirectory: true)
     }
 

@@ -2304,8 +2304,8 @@ final class MeetingSessionCoordinator: ObservableObject {
                 kind: .captureStoppedUnexpectedly,
                 trackID: nil,
                 detail: previousState == .processing
-                    ? "FluidVoice restarted before transcription completed."
-                    : "FluidVoice restarted before capture finalized."
+                    ? "Just Say It restarted before transcription completed."
+                    : "Just Say It restarted before capture finalized."
             ))
         }
         if Self.shouldQueuePendingAttempt(for: session) {
@@ -2382,7 +2382,7 @@ enum MeetingCoordinatorError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .featureDisabled:
-            return "Enable FluidMeet in Settings to record a meeting."
+            return "Enable Meetings in Settings to record a meeting."
         case .recordingAlreadyActive:
             return "Another meeting recording is already active."
         case .noActiveMeeting:
@@ -2396,7 +2396,7 @@ enum MeetingCoordinatorError: LocalizedError {
         case .noCorrectionToUndo:
             return "There is nothing to undo."
         case .maintenanceInProgress:
-            return "FluidVoice is tidying up meeting storage. Try again in a moment."
+            return "Just Say It is tidying up meeting storage. Try again in a moment."
         case .unsupportedRetranscriptionLanguage:
             return "Choose a language the meeting transcription model supports."
         }

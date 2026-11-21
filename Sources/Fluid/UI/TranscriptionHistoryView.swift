@@ -178,10 +178,10 @@ struct TranscriptionHistoryView: View {
         } message: {
             Text("This will permanently delete all \(self.historyStore.entries.count) transcription entries, including pinned entries. This action cannot be undone.")
         }
-        .alert("Report Sent", isPresented: self.$showReportConfirmation) {
+        .alert("Report Copied", isPresented: self.$showReportConfirmation) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Thank you for helping improve FluidVoice dictation.")
+            Text("Paste the report into a GitHub issue when you are ready to share it.")
         }
         .sheet(item: self.$selectedReportEntry) { entry in
             TranscriptionFeedbackReportSheet(entry: entry) {
@@ -828,25 +828,23 @@ private struct TranscriptionFeedbackReportSheet: View {
     @State private var outputText: String
     @State private var processingModel: String
     @State private var comment: String
-    @State private var isSending: Bool = false
-    @State private var errorMessage: String?
 
-    let onSent: () -> Void
+    let onCopied: () -> Void
 
-    init(entry: TranscriptionHistoryEntry, onSent: @escaping () -> Void) {
+    init(entry: TranscriptionHistoryEntry, onCopied: @escaping () -> Void) {
         _inputText = State(initialValue: entry.rawText)
         _outputText = State(initialValue: entry.processedText)
         _processingModel = State(initialValue: Self.reportModel(for: entry))
         _comment = State(initialValue: "")
-        self.onSent = onSent
+        self.onCopied = onCopied
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Share anonymous datapoint")
+                Text("Prepare a dictation report")
                     .font(.fluidSystem(size: 18, weight: .semibold))
-                Text("Help improve our model. Only the example shown below will be sent.")
+                Text("Edit the example to remove personal details before copying it into a GitHub issue.")
                     .font(.fluidSystem(size: 12))
                     .foregroundStyle(.secondary)
             }
@@ -856,38 +854,17 @@ private struct TranscriptionFeedbackReportSheet: View {
             self.feedbackField(title: "Processing Model", text: self.$processingModel, height: 40)
             self.feedbackField(title: "Comment optional", text: self.$comment, height: 72)
 
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(.fluidSystem(size: 12, weight: .medium))
-                    .foregroundStyle(.red)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
             HStack {
                 Spacer()
-                Button("Cancel") {
-                    self.dismiss()
-                }
-                .keyboardShortcut(.cancelAction)
-                .disabled(self.isSending)
-
-                Button {
-                    Task {
-                        await self.sendReport()
-                    }
-                } label: {
-                    HStack(spacing: 8) {
-                        if self.isSending {
-                            ProgressView()
-                                .controlSize(.small)
-                                .fixedSize()
-                        }
-                        Text(self.isSending ? "Sending..." : "Send Example")
-                    }
-                }
-                .keyboardShortcut(.defaultAction)
-                .buttonStyle(.borderedProminent)
-                .disabled(self.isSendDisabled)
+                Button("Cancel") { self.dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Button("Copy Report", action: self.copyReport)
+                    .keyboardShortcut(.defaultAction)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(
+                        self.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                            && self.outputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    )
             }
         }
         .padding(20)
@@ -895,33 +872,23 @@ private struct TranscriptionFeedbackReportSheet: View {
         .background(self.theme.palette.contentBackground)
     }
 
-    private var isSendDisabled: Bool {
-        self.isSending ||
-            (
-                self.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-                    self.outputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            ) ||
-            self.processingModel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
+    private func copyReport() {
+        let report = """
+        Raw text
+        \(self.inputText.trimmingCharacters(in: .whitespacesAndNewlines))
 
-    private func sendReport() async {
-        let payload = TranscriptionFeedbackReporter.Payload(
-            rawText: self.inputText.trimmingCharacters(in: .whitespacesAndNewlines),
-            processedText: self.outputText.trimmingCharacters(in: .whitespacesAndNewlines),
-            processingModel: self.processingModel.trimmingCharacters(in: .whitespacesAndNewlines),
-            comments: self.comment.trimmingCharacters(in: .whitespacesAndNewlines)
-        )
+        Processed text
+        \(self.outputText.trimmingCharacters(in: .whitespacesAndNewlines))
 
-        self.isSending = true
-        self.errorMessage = nil
-        do {
-            try await TranscriptionFeedbackReporter.submit(payload)
-            self.isSending = false
-            self.onSent()
-        } catch {
-            self.errorMessage = error.localizedDescription
-            self.isSending = false
-        }
+        Processing model
+        \(self.processingModel.trimmingCharacters(in: .whitespacesAndNewlines))
+
+        Notes
+        \(self.comment.trimmingCharacters(in: .whitespacesAndNewlines))
+        """
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(report, forType: .string)
+        self.onCopied()
     }
 
     private func feedbackField(title: String, text: Binding<String>, height: CGFloat) -> some View {

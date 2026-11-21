@@ -31,7 +31,7 @@ final class FeedbackClientTests: XCTestCase {
 
     func testSuccessRequiresReceiptAndUsesExpectedRequest() async throws {
         let client = self.client { request in
-            XCTAssertEqual(request.url?.absoluteString, "https://altic.dev/api/fluid/feedback")
+            XCTAssertEqual(request.url?.absoluteString, "https://example.com/feedback")
             XCTAssertEqual(request.httpMethod, "POST")
             XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
             XCTAssertEqual(request.timeoutInterval, 30)
@@ -90,7 +90,7 @@ final class FeedbackClientTests: XCTestCase {
         FeedbackURLProtocol.handler = handler
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [FeedbackURLProtocol.self]
-        return FeedbackClient(session: URLSession(configuration: config))
+        return FeedbackClient(session: URLSession(configuration: config), endpoint: URL(string: "https://example.com/feedback"))
     }
 }
 

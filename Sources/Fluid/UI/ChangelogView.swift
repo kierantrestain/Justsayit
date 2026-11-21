@@ -10,8 +10,8 @@ struct ChangelogView: View {
     @State private var releasesChannel: String?
     @State private var refreshTask: Task<Void, Never>?
 
-    private let owner = "altic-dev"
-    private let repo = "Fluid-oss"
+    private let owner = AppIdentity.repositoryOwner
+    private let repo = AppIdentity.repositoryName
     private let releaseLimit = 3
 
     var body: some View {
@@ -94,7 +94,7 @@ struct ChangelogView: View {
                 Text("No changelog available")
                     .font(self.theme.typography.sectionTitle)
                     .foregroundStyle(self.theme.palette.primaryText)
-                Text("FluidVoice could not load GitHub release notes right now.")
+                Text("Just Say It could not load GitHub release notes right now.")
                     .font(self.theme.typography.bodySmall)
                     .foregroundStyle(self.theme.palette.secondaryText)
             }

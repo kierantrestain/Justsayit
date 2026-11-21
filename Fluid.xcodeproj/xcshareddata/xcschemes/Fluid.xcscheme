@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "7C078D8E2E3B339200FB7CAC"
-               BuildableName = "FluidVoice.app"
+               BuildableName = "Just Say It.app"
                BlueprintName = "fluid"
                ReferencedContainer = "container:Fluid.xcodeproj">
             </BuildableReference>
@@ -57,7 +57,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "7C078D8E2E3B339200FB7CAC"
-            BuildableName = "FluidVoice.app"
+            BuildableName = "Just Say It.app"
             BlueprintName = "fluid"
             ReferencedContainer = "container:Fluid.xcodeproj">
          </BuildableReference>
@@ -74,7 +74,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "7C078D8E2E3B339200FB7CAC"
-            BuildableName = "FluidVoice.app"
+            BuildableName = "Just Say It.app"
             BlueprintName = "fluid"
             ReferencedContainer = "container:Fluid.xcodeproj">
          </BuildableReference>
@@ -85,7 +85,7 @@
    </AnalyzeAction>
    <ArchiveAction
       buildConfiguration = "Release"
-      customArchiveName = "Fluid"
+      customArchiveName = "Just Say It"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>

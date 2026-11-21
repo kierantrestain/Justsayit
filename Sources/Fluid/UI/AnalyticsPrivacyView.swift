@@ -82,16 +82,11 @@ struct AnalyticsPrivacyView: View {
 
     private var contactInfoText: AttributedString {
         var text = AttributedString(
-            "If you have any concerns we would love to hear about it, please email alticdev@gmail.com or file an issue in our GitHub."
+            "For questions about analytics, open an issue on GitHub."
         )
 
-        if let emailRange = text.range(of: "alticdev@gmail.com") {
-            text[emailRange].link = URL(string: "mailto:alticdev@gmail.com")
-            text[emailRange].foregroundColor = self.theme.palette.accent
-        }
-
         if let githubRange = text.range(of: "GitHub") {
-            text[githubRange].link = URL(string: "https://github.com/altic-dev/FluidVoice")
+            text[githubRange].link = AppIdentity.githubURL("issues/new")
             text[githubRange].foregroundColor = self.theme.palette.accent
         }
 

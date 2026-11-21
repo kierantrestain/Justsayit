@@ -40,7 +40,7 @@ struct FeedbackSubmission: Encodable {
     static var appDetails: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "Unknown"
-        return "FluidVoice \(version) (\(build))\nmacOS: \(ProcessInfo.processInfo.operatingSystemVersionString)"
+        return "Just Say It \(version) (\(build))\nmacOS: \(ProcessInfo.processInfo.operatingSystemVersionString)"
     }
 
     static func isValidEmail(_ value: String) -> Bool {
@@ -78,11 +78,19 @@ struct FeedbackSubmission: Encodable {
 
 struct FeedbackClient {
     var session: URLSession = .shared
+    var endpoint: URL? = FeedbackClient.configuredEndpoint
+
+    static var configuredEndpoint: URL? {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "JustSayItFeedbackURL") as? String,
+              let url = URL(string: value), url.scheme == "https", url.host != nil
+        else { return nil }
+        return url
+    }
 
     func send(_ submission: FeedbackSubmission) async throws {
         guard submission.isValid else { throw Failure.invalid }
-        guard let url = URL(string: "https://altic.dev/api/fluid/feedback") else { throw Failure.invalid }
-        var request = URLRequest(url: url, timeoutInterval: 30)
+        guard let endpoint else { throw Failure.unavailable }
+        var request = URLRequest(url: endpoint, timeoutInterval: 30)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -110,11 +118,12 @@ struct FeedbackClient {
     private struct Receipt: Decodable { let message: String }
 
     enum Failure: LocalizedError {
-        case invalid, rateLimited, rejected, server, connection, unconfirmed
+        case invalid, unavailable, rateLimited, rejected, server, connection, unconfirmed
 
         var errorDescription: String? {
             switch self {
             case .invalid: "Add a valid email and a message within the character limit."
+            case .unavailable: "Open a GitHub issue to share feedback for this build."
             case .rateLimited: "Too many messages at once. Please wait a minute, then try again. Your draft is still here."
             case .rejected: "The server couldn’t accept this message. Check your email and message length. Your draft is still here."
             case .server: "Feedback is temporarily unavailable. Please try again later. Your draft is still here."

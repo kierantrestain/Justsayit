@@ -125,11 +125,11 @@ struct DictionaryWordWizard: View {
     private var spelling: some View {
         VStack(spacing: self.theme.metrics.spacing.lg) {
             DictionaryVoiceWave(active: false, height: 96)
-            Text("Which word does FluidVoice keep getting wrong?")
+            Text("Which word does Just Say It keep getting wrong?")
                 .font(self.theme.typography.sectionTitle)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-            TextField("For example, FluidVoice", text: Binding(get: { self.word }, set: { value in
+            TextField("For example, Just Say It", text: Binding(get: { self.word }, set: { value in
                 if self.count >= 1, value != self.word {
                     self.pendingWord = value
                     self.confirmingWordChange = true
@@ -264,7 +264,7 @@ struct DictionaryWordWizard: View {
             Text(self.step == .review ? "Your word, your way" : "For best results")
                 .font(self.theme.typography.title)
             if self.step == .review {
-                Text(self.alreadyCorrect ? "FluidVoice recognised your word in each recording." : "Your recordings are ready. Save this word to use it in future dictations.")
+                Text(self.alreadyCorrect ? "Just Say It recognised your word in each recording." : "Your recordings are ready. Save this word to use it in future dictations.")
                     .font(self.theme.typography.statement)
                     .foregroundStyle(self.theme.palette.secondaryText)
                 Divider()
@@ -493,7 +493,7 @@ struct DictionaryWordWizard: View {
     private var addSpellingPopover: some View {
         VStack(alignment: .leading, spacing: self.theme.metrics.spacing.md) {
             Text("Add a spelling correction").font(self.theme.typography.sectionTitle)
-            TextField("What FluidVoice types instead", text: self.$newSpelling)
+            TextField("What Just Say It types instead", text: self.$newSpelling)
                 .textFieldStyle(.roundedBorder)
                 .onSubmit { self.addSpelling() }
             if let spellingError {
@@ -696,7 +696,7 @@ private struct DictionaryWaveShape: Shape {
     }
 }
 
-/// Three tries, each showing what FluidVoice heard. Past three, the latest tries stay visible.
+/// Three tries, each showing what Just Say It heard. Past three, the latest tries stay visible.
 private struct DictionaryCaptureSlots: View {
     let word: String
     let attempts: [String]

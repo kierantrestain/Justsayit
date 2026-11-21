@@ -537,11 +537,11 @@ struct ContentView: View {
                 self.hotkeyManager?.updatePromptShortcutAssignments(SettingsStore.shared.dictationPromptShortcutAssignments())
             }
             // Local UI diagnostics, same defaults gate as GlobalHotkeyManager+DebugTrigger.
-            .onReceive(DistributedNotificationCenter.default().publisher(for: Notification.Name("com.FluidApp.debug.toggleSidebar"))) { _ in
+            .onReceive(DistributedNotificationCenter.default().publisher(for: Notification.Name("com.kierantrestain.justsayit.debug.toggleSidebar"))) { _ in
                 guard UserDefaults.standard.bool(forKey: "FluidDebugRemoteToggleEnabled") else { return }
                 self.toggleSidebar()
             }
-            .onReceive(DistributedNotificationCenter.default().publisher(for: Notification.Name("com.FluidApp.debug.openSettings"))) { _ in
+            .onReceive(DistributedNotificationCenter.default().publisher(for: Notification.Name("com.kierantrestain.justsayit.debug.openSettings"))) { _ in
                 guard UserDefaults.standard.bool(forKey: "FluidDebugRemoteToggleEnabled") else { return }
                 self.menuBarManager.openPreferencesFromUI()
             }
@@ -1476,12 +1476,12 @@ struct ContentView: View {
     }
 
     private func openIssueReportingPage() {
-        guard let url = URL(string: "https://github.com/altic-dev/Fluid-oss/issues/new/choose") else { return }
+        guard let url = AppIdentity.githubURL("issues/new") else { return }
         NSWorkspace.shared.open(url)
     }
 
     private func openHelpDocumentation() {
-        guard let url = URL(string: "https://docs.altic.dev/") else { return }
+        guard let url = AppIdentity.githubURL("#readme") else { return }
         NSWorkspace.shared.open(url)
     }
 
@@ -1577,7 +1577,7 @@ struct ContentView: View {
                 if self.settings.fluidMeetEnabled {
                     self.sidebarNavigationLink(
                         .meetingTranscription,
-                        title: "FluidMeet",
+                        title: "Meetings",
                         systemImage: "person.2.fill"
                     )
                 }
@@ -1670,8 +1670,8 @@ struct ContentView: View {
                 reduceMotion: self.accessibilityReduceMotion
             ))
             .onHover { self.isSettingsBackHovered = $0 }
-            .help("Back to FluidVoice")
-            .accessibilityLabel("Back to FluidVoice")
+            .help("Back to Just Say It")
+            .accessibilityLabel("Back to Just Say It")
 
             SidebarSearchField(
                 text: Binding(
@@ -1834,7 +1834,7 @@ struct ContentView: View {
             reduceMotion: self.accessibilityReduceMotion
         ))
         .onHover { self.isHelpEntryHovered = $0 }
-        .help("Open FluidVoice Help")
+        .help("Open Just Say It Help")
         .accessibilityLabel("Help")
         .accessibilityHint("What’s new, documentation, Fluid Intelligence demo, and replay onboarding")
     }
@@ -2211,8 +2211,8 @@ struct ContentView: View {
                     self.instructionStep(number: "2", text: "Choose **Allow** in the system dialog")
                 } else if self.asr.micStatus == .denied {
                     self.instructionStep(number: "1", text: "Click **Open Settings** above")
-                    self.instructionStep(number: "2", text: "Find **FluidVoice** in the microphone list")
-                    self.instructionStep(number: "3", text: "Toggle **FluidVoice ON** to allow access")
+                    self.instructionStep(number: "2", text: "Find **Just Say It** in the microphone list")
+                    self.instructionStep(number: "3", text: "Toggle **Just Say It ON** to allow access")
                 }
             }
             .padding(.leading, 4)
@@ -3508,7 +3508,7 @@ struct ContentView: View {
                 model: transcriptionModelInfo.model
             )
         }
-        // When FluidVoice itself is frontmost, the bound editor already receives `finalText`.
+        // When Just Say It itself is frontmost, the bound editor already receives `finalText`.
         let shouldCopyToClipboard = shouldDeliverOutputs &&
             !sendsExistingDraft &&
             SettingsStore.shared.copyTranscriptionToClipboard
@@ -5901,7 +5901,7 @@ extension ContentView {
     private func positionWindowBesideSystemSettings(requestID: UUID) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
             guard self.accessibilityGuideRequestID == requestID else { return }
-            guard let window = NSApp.windows.first(where: { $0.isVisible && $0.title == "FluidVoice" }) ?? NSApp.keyWindow else {
+            guard let window = NSApp.windows.first(where: { $0.isVisible && $0.title == "Just Say It" }) ?? NSApp.keyWindow else {
                 return
             }
 
@@ -6070,7 +6070,7 @@ extension ContentView {
     private func cancelAccessibilityPermissionFlow() {
         self.finishAccessibilityPermissionFlow()
         NSApp.activate(ignoringOtherApps: true)
-        (NSApp.windows.first { $0.isVisible && $0.title == "FluidVoice" } ?? NSApp.keyWindow)?
+        (NSApp.windows.first { $0.isVisible && $0.title == "Just Say It" } ?? NSApp.keyWindow)?
             .makeKeyAndOrderFront(nil)
     }
 
@@ -6135,7 +6135,7 @@ extension ContentView {
             return runningAppURL
         }
 
-        let installedURL = URL(fileURLWithPath: "/Applications/FluidVoice.app")
+        let installedURL = URL(fileURLWithPath: "/Applications/Just Say It.app")
         if FileManager.default.fileExists(atPath: installedURL.path) {
             return installedURL
         }

@@ -18,25 +18,25 @@
 	<string>1.6.13</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>FluidVoice contributors and Just Say It contributors (GPLv3)</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.productivity</string>
 	<key>NSAccessibilityUsageDescription</key>
-	<string>FluidVoice needs Accessibility permission to listen for global hotkeys and type text into other apps when you stop recording.</string>
+	<string>Just Say It needs Accessibility permission to listen for global hotkeys and type text into other apps when you stop recording.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>FluidVoice needs microphone access to record your voice for speech-to-text transcription. Your audio is processed locally and never sent to external servers.</string>
+	<string>Just Say It needs microphone access to record your voice for speech-to-text transcription. Speech is transcribed locally unless you select a remote speech provider.</string>
 	<key>NSAudioCaptureUsageDescription</key>
-	<string>FluidVoice needs system audio access to record the meeting application you explicitly select. Meeting audio stays on this Mac.</string>
+	<string>Just Say It needs system audio access to record the meeting application you explicitly select. Meeting audio stays on this Mac.</string>
 	<key>NSScreenCaptureUsageDescription</key>
-	<string>FluidVoice needs Screen &amp; System Audio access to record audio from the meeting application you explicitly select.</string>
+	<string>Just Say It needs Screen &amp; System Audio access to record audio from the meeting application you explicitly select.</string>
 	<key>LSUIElement</key>
 	<false/>
+	<key>JustSayItUpdateTeamID</key>
+	<string>$(JUSTSAYIT_UPDATE_TEAM_ID)</string>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>FluidVoice needs permission to control system events for managing launch at startup settings.</string>
-	<key>POSTHOG_API_KEY</key>
-	<string>phc_coNu37345O2bgaAeQMD3tezkg1rDCbDS9Y3pOVvp2VM</string>
-	<key>POSTHOG_HOST</key>
-	<string>https://eu.i.posthog.com</string>
+	<string>Just Say It needs permission to control system events for managing launch at startup settings.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>FluidVoice uses on-device speech recognition to transcribe your voice commands and text quickly and privately.</string>
+	<string>Just Say It uses on-device speech recognition to transcribe your voice commands and text quickly and privately.</string>
 </dict>
 </plist>

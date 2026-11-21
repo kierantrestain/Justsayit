@@ -13,7 +13,7 @@ struct FeedbackView: View {
     @State private var error: String?
     @FocusState private var messageFocused: Bool
 
-    private static let starURL = URL(string: "https://github.com/altic-dev/Fluid-oss")
+    private static let starURL = AppIdentity.githubURL()
     private static let sponsorURL = URL(string: "https://github.com/sponsors/altic-dev")
 
     private var draft: FeedbackSubmission {
@@ -45,15 +45,22 @@ struct FeedbackView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: self.theme.metrics.spacing.xl) {
                 VStack(alignment: .leading, spacing: self.theme.metrics.spacing.sm) {
-                    Text("Make FluidVoice better.")
+                    Text("Share feedback")
                         .font(self.theme.typography.title)
                         .foregroundStyle(self.theme.palette.primaryText)
-                    Text("Something in your way? Have an idea? Tell us.")
+                    Text("Tell us what went wrong or suggest a change for Just Say It.")
                         .font(self.theme.typography.body)
                         .foregroundStyle(self.theme.palette.secondaryText)
                 }
 
-                if self.sent {
+                if FeedbackClient.configuredEndpoint == nil {
+                    if let url = AppIdentity.githubURL("issues/new") {
+                        Link(destination: url) {
+                            Label("Open a GitHub Issue", systemImage: "arrow.up.right.square")
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                } else if self.sent {
                     self.confirmation
                 } else {
                     self.categories
@@ -234,7 +241,7 @@ struct FeedbackView: View {
                 .foregroundStyle(self.theme.palette.warning)
                 .fixedSize(horizontal: false, vertical: true)
         } else {
-            Text(self.sending ? "Sending…" : "Goes straight to the FluidVoice team.")
+            Text(self.sending ? "Sending…" : "Sends your message to the configured feedback service.")
                 .font(self.theme.typography.caption)
                 .foregroundStyle(self.theme.palette.tertiaryText)
         }
@@ -281,7 +288,7 @@ struct FeedbackView: View {
 
     private var footer: some View {
         HStack(spacing: self.theme.metrics.spacing.sm) {
-            Text("Enjoying FluidVoice?")
+            Text("Enjoying Just Say It?")
             if let url = Self.starURL {
                 Link("Star it on GitHub", destination: url)
             }

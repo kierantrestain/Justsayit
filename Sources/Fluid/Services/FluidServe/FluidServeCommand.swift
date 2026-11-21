@@ -13,7 +13,7 @@ nonisolated enum FluidServeCommand {
     }
 
     static let usage = """
-    fv-serve reads FluidVoice meetings. It is read-only.
+    fv-serve reads Just Say It meetings. It is read-only.
 
       fv-serve meet list [--since 7d|24h|YYYY-MM-DD] [--limit N] [--json]
       fv-serve meet show <id|latest> [--from MM:SS] [--to MM:SS] [--json]
@@ -201,7 +201,7 @@ nonisolated enum FluidServeCommand {
             }
             guard !summaries.isEmpty else {
                 return .failure(
-                    "No saved summary for this meeting. Summaries are written in FluidVoice; "
+                    "No saved summary for this meeting. Summaries are written in Just Say It; "
                         + "`\(FluidServeMeetings.toolName) meet show \(entry.meeting.id.uuidString.prefix(8))` prints the transcript."
                 )
             }
@@ -212,7 +212,7 @@ nonisolated enum FluidServeCommand {
                     facts.append("Saved: \(FluidServeMeetings.dateText(generatedAt, timeZone: timeZone))")
                 }
                 if summary.isOutdated {
-                    facts.append("Outdated: the meeting changed after this summary was written. Regenerate it in FluidVoice if needed.")
+                    facts.append("Outdated: the meeting changed after this summary was written. Regenerate it in Just Say It if needed.")
                 }
                 return facts.joined(separator: "\n") + "\n\n" + summary.text
             }.joined(separator: "\n\n==========\n\n")

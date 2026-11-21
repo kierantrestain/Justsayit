@@ -1713,7 +1713,7 @@ final class SettingsStore: ObservableObject {
     }
 
     /// The chosen quiet period. A local-testing override shortens it without
-    /// adding a UI option: `defaults write com.FluidApp.app
+    /// adding a UI option: `defaults write com.kierantrestain.justsayit
     /// PrivateAIProviderIdleUnloadTestSeconds -int 60`.
     var privateAIIdleUnloadDelay: Duration? {
         guard let delay = self.privateAIIdleUnload.delay else { return nil }
@@ -2774,7 +2774,7 @@ final class SettingsStore: ObservableObject {
             guard let raw = self.defaults.string(forKey: Keys.accentColorOption),
                   let option = AccentColorOption(rawValue: raw)
             else {
-                return .cyan
+                return .purple
             }
             return option
         }
@@ -5851,11 +5851,11 @@ final class SettingsStore: ObservableObject {
             }
         }
 
-        /// Optional badge text for the card (e.g., "FluidVoice Pick")
+        /// Optional badge text for the card (e.g., "Recommended")
         var badgeText: String? {
             switch self {
-            case .parakeetTDT: return "FluidVoice Pick"
-            case .parakeetTDTv2: return "FluidVoice Pick"
+            case .parakeetTDT: return "Recommended"
+            case .parakeetTDTv2: return "Recommended"
             case .fluidParakeetMini, .fluidParakeetPico, .fluidParakeetPro: return "New"
             case .parakeetRealtime: return "Beta"
             case .qwen3Asr: return "Beta"

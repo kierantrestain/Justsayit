@@ -189,7 +189,7 @@ final class MeetingCorrectionUndoRegistration: ObservableObject {
     }
 }
 
-/// Owned by the window, so leaving FluidMeet does not discard its last loaded history.
+/// Owned by the window, so leaving Meetings does not discard its last loaded history.
 @MainActor
 final class MeetingHistorySnapshot: ObservableObject {
     @Published private(set) var sessions: [MeetingSession] = []
@@ -621,7 +621,7 @@ struct MeetingTranscriptionView: View {
             let trackCount = MeetingPCMStoragePolicy.trackCount(for: self.effectiveCaptureMode)
             blockingMessage = "Free at least \(MeetingPCMStoragePolicy.requiredFreeSpaceDescription(trackCount: trackCount)) of storage before recording."
         } else if !CPUArchitecture.isAppleSilicon {
-            blockingMessage = "FluidMeet requires an Apple silicon Mac."
+            blockingMessage = "Meetings requires an Apple silicon Mac."
         } else {
             blockingMessage = nil
         }
@@ -1289,7 +1289,7 @@ struct MeetingTranscriptionView: View {
         return true
     }
 
-    /// Opens FluidMeet settings on the Integrations tab, from a meeting's More menu.
+    /// Opens Meetings settings on the Integrations tab, from a meeting's More menu.
     private func openMeetingIntegrations() {
         self.openMeetingSettings(section: .integrations)
     }
@@ -1392,7 +1392,7 @@ struct MeetingTranscriptionView: View {
     private func exportTranscript(_ session: MeetingSession, format: MeetingTranscriptExportFormat, includeEchoes: Bool) {
         let panel = NSSavePanel()
         panel.nameFieldStringValue = "\(Self.sanitizedExportName(session.title)).\(format.fileExtension)"
-        panel.message = "Exported transcripts are outside FluidVoice's retention controls and may be indexed or synced by other apps."
+        panel.message = "Exported transcripts are outside Just Say It's retention controls and may be indexed or synced by other apps."
         guard panel.runModal() == .OK, let url = panel.url else { return }
         self.actionErrorMessage = nil
         do {
@@ -1744,7 +1744,7 @@ private struct MeetingTranscriptionHeader: View {
 
                 MeetingHeaderIconButton(
                     systemImage: "gearshape",
-                    label: "FluidMeet settings",
+                    label: "Meetings settings",
                     action: self.onOpenMeetingSettings
                 )
                 .disabled(!self.actions.canEditSetup)

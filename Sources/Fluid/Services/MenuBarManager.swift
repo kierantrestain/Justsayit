@@ -897,28 +897,28 @@ final class MenuBarManager: NSObject, ObservableObject, NSMenuDelegate {
                 statusItem.button?.image = self.menuBarActivityImage(baseImage: image, activity: .recording)
                 statusItem.button?.setAccessibilityLabel(
                     self.meetingMenuPresentation.activity == .stopping
-                        ? "FluidVoice, stopping meeting recording"
-                        : "FluidVoice, meeting recording"
+                        ? "Just Say It, stopping meeting recording"
+                        : "Just Say It, meeting recording"
                 )
             case .preparing, .processing:
                 statusItem.button?.image = self.menuBarActivityImage(baseImage: image, activity: .processing)
                 statusItem.button?.setAccessibilityLabel(
                     self.meetingMenuPresentation.activity == .preparing
-                        ? "FluidVoice, starting meeting recording"
-                        : "FluidVoice, transcribing meeting"
+                        ? "Just Say It, starting meeting recording"
+                        : "Just Say It, transcribing meeting"
                 )
             case .interrupted, .failed:
                 statusItem.button?.image = self.menuBarActivityImage(baseImage: image, activity: .interrupted)
                 let status = self.meetingMenuPresentation.attentionStatus ?? "Meeting needs attention"
-                statusItem.button?.setAccessibilityLabel("FluidVoice, \(status.lowercased())")
+                statusItem.button?.setAccessibilityLabel("Just Say It, \(status.lowercased())")
             case .inactive:
                 image.isTemplate = true
                 statusItem.button?.image = image
-                statusItem.button?.setAccessibilityLabel("FluidVoice")
+                statusItem.button?.setAccessibilityLabel("Just Say It")
             case .completed:
                 image.isTemplate = true
                 statusItem.button?.image = image
-                statusItem.button?.setAccessibilityLabel("FluidVoice, meeting transcription complete")
+                statusItem.button?.setAccessibilityLabel("Just Say It, meeting transcription complete")
             }
         }
     }
@@ -964,7 +964,7 @@ final class MenuBarManager: NSObject, ObservableObject, NSMenuDelegate {
             return true
         }
         image.isTemplate = true
-        image.accessibilityDescription = "FluidVoice meeting status"
+        image.accessibilityDescription = "Just Say It meeting status"
         return image
     }
 
@@ -997,7 +997,7 @@ final class MenuBarManager: NSObject, ObservableObject, NSMenuDelegate {
         self.meetingStatusMenuItem = meetingStatusItem
 
         let openMeetingItem = NSMenuItem(
-            title: "Open FluidMeet",
+            title: "Open Meetings",
             action: #selector(openMeetingTranscription),
             keyEquivalent: ""
         )
@@ -1163,27 +1163,27 @@ final class MenuBarManager: NSObject, ObservableObject, NSMenuDelegate {
 
         switch activity {
         case .inactive:
-            self.openMeetingTranscriptionMenuItem?.title = "Open FluidMeet"
+            self.openMeetingTranscriptionMenuItem?.title = "Open Meetings"
         case .preparing:
             self.meetingStatusMenuItem?.title = "Starting meeting recording…"
-            self.openMeetingTranscriptionMenuItem?.title = "Open FluidMeet"
+            self.openMeetingTranscriptionMenuItem?.title = "Open Meetings"
         case .recording:
             let source = self.meetingMenuPresentation.sourceName ?? "Meeting"
             let elapsed = self.meetingMenuPresentation.startedAt.map { Self.elapsedText(now.timeIntervalSince($0)) } ?? "0:00"
             self.meetingStatusMenuItem?.title = "Recording \(source) · \(elapsed)"
-            self.openMeetingTranscriptionMenuItem?.title = "Open FluidMeet"
+            self.openMeetingTranscriptionMenuItem?.title = "Open Meetings"
         case .stopping:
             self.meetingStatusMenuItem?.title = "Finalizing meeting audio…"
-            self.openMeetingTranscriptionMenuItem?.title = "Open FluidMeet"
+            self.openMeetingTranscriptionMenuItem?.title = "Open Meetings"
         case .processing:
             self.meetingStatusMenuItem?.title = "Transcribing meeting…"
-            self.openMeetingTranscriptionMenuItem?.title = "Open FluidMeet"
+            self.openMeetingTranscriptionMenuItem?.title = "Open Meetings"
         case .interrupted:
             self.meetingStatusMenuItem?.title = self.meetingMenuPresentation.attentionStatus ?? "Recording interrupted"
-            self.openMeetingTranscriptionMenuItem?.title = "Open FluidMeet"
+            self.openMeetingTranscriptionMenuItem?.title = "Open Meetings"
         case .failed:
             self.meetingStatusMenuItem?.title = self.meetingMenuPresentation.attentionStatus ?? "Meeting setup failed"
-            self.openMeetingTranscriptionMenuItem?.title = "Open FluidMeet"
+            self.openMeetingTranscriptionMenuItem?.title = "Open Meetings"
         case .completed:
             self.openMeetingTranscriptionMenuItem?.title = "Open Latest Meeting Transcript"
         }
@@ -1344,7 +1344,7 @@ final class MenuBarManager: NSObject, ObservableObject, NSMenuDelegate {
 
         let confirm = NSAlert()
         confirm.messageText = "Rollback to \(availableVersion)?"
-        confirm.informativeText = "This will restore the backup and relaunch FluidVoice."
+        confirm.informativeText = "This will restore the backup and relaunch Just Say It."
         confirm.alertStyle = .warning
         confirm.addButton(withTitle: "Rollback")
         confirm.addButton(withTitle: "Cancel")
@@ -1356,7 +1356,7 @@ final class MenuBarManager: NSObject, ObservableObject, NSMenuDelegate {
                 try await SimpleUpdater.shared.rollbackToLatestBackup()
                 let success = NSAlert()
                 success.messageText = "Rollback Successful"
-                success.informativeText = "Rolled back to \(availableVersion). FluidVoice will relaunch shortly."
+                success.informativeText = "Rolled back to \(availableVersion). Just Say It will relaunch shortly."
                 success.alertStyle = .informational
                 success.addButton(withTitle: "Report Bug")
                 success.addButton(withTitle: "OK")
@@ -1376,7 +1376,7 @@ final class MenuBarManager: NSObject, ObservableObject, NSMenuDelegate {
     }
 
     private func openIssueReportingPage() {
-        guard let url = URL(string: "https://github.com/altic-dev/Fluid-oss/issues/new/choose") else { return }
+        guard let url = AppIdentity.githubURL("issues/new") else { return }
         NSWorkspace.shared.open(url)
     }
 
@@ -1384,8 +1384,8 @@ final class MenuBarManager: NSObject, ObservableObject, NSMenuDelegate {
         Task { @MainActor in
             do {
                 let options = try await SimpleUpdater.shared.fetchRecentReleaseBuildOptions(
-                    owner: "altic-dev",
-                    repo: "Fluid-oss",
+                    owner: AppIdentity.repositoryOwner,
+                    repo: AppIdentity.repositoryName,
                     limit: 3,
                     includePrerelease: SettingsStore.shared.betaReleasesEnabled
                 )
@@ -1427,7 +1427,7 @@ final class MenuBarManager: NSObject, ObservableObject, NSMenuDelegate {
     }
 
     private func openAllReleasesPage() {
-        guard let url = URL(string: "https://github.com/altic-dev/Fluid-oss/releases") else { return }
+        guard let url = AppIdentity.githubURL("releases") else { return }
         NSWorkspace.shared.open(url)
     }
 
@@ -1620,7 +1620,7 @@ final class MenuBarManager: NSObject, ObservableObject, NSMenuDelegate {
             backing: .buffered,
             defer: false
         )
-        window.title = "FluidVoice"
+        window.title = "Just Say It"
         // Match the SwiftUI main scene when recreating a closed window.
         window.toolbarStyle = .unified
         window.animationBehavior = .none

@@ -49,6 +49,7 @@ struct CustomDictionaryView: View {
     @State private var boostHasError = false
     @State private var vocabBoostingEnabled: Bool = SettingsStore.shared.vocabularyBoostingEnabled
     @State private var isCustomWordsPresented = false
+    @State private var isStarterVocabularyPresented = false
     @State private var isBoostWordEditorPresented = false
     @State private var editingBoostTermIndex: Int?
     @State private var boostTermText = ""
@@ -335,6 +336,20 @@ struct CustomDictionaryView: View {
         .fluidPageActions(enabled: !self.formattingOnly) {
             self.dictionaryDrawerToggle
         }
+        .sheet(isPresented: self.$isStarterVocabularyPresented) {
+            StarterVocabularySheet(
+                savedWords: self.boostTerms.map(\.text),
+                availableSlots: max(0, ParakeetVocabularyStore.maximumUserTerms - self.boostTerms.count),
+                boostingEnabled: self.vocabBoostingEnabled || self.boostTerms.isEmpty
+            ) { words, enableBoosting in
+                self.boostTerms = try ParakeetVocabularyStore.shared.addUserBoostWords(words, weight: BoostStrengthPreset.mild.weight)
+                self.vocabBoostingEnabled = enableBoosting
+                if self.settings.vocabularyBoostingEnabled != enableBoosting {
+                    self.settings.vocabularyBoostingEnabled = enableBoosting
+                }
+                self.boostHasError = false
+            }
+        }
         .dismissTextFocusOnBackgroundTap()
         .task(id: self.revealTarget) {
             self.revealSearchTarget()
@@ -521,6 +536,14 @@ struct CustomDictionaryView: View {
                 .font(self.theme.typography.caption)
                 .foregroundStyle(self.theme.palette.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
+            Button {
+                self.loadBoostTerms()
+                self.vocabBoostingEnabled = self.settings.vocabularyBoostingEnabled
+                self.isStarterVocabularyPresented = true
+            } label: {
+                Label("Starter Vocabulary…", systemImage: "text.book.closed")
+            }
+            .fluidGlassAction()
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(self.theme.palette.secondaryText)
@@ -639,7 +662,7 @@ struct CustomDictionaryView: View {
                         Label("Back", systemImage: "chevron.left")
                     }.fluidGlassAction()
                     Text("Add a correction").font(self.theme.typography.sectionTitle)
-                    Text("When FluidVoice types the wrong version, we’ll change it to your word.")
+                    Text("When Just Say It types the wrong version, we’ll change it to your word.")
                         .font(self.theme.typography.bodySmall)
                         .foregroundStyle(self.theme.palette.secondaryText)
                     self.manualReplacementComposer
@@ -746,7 +769,7 @@ struct CustomDictionaryView: View {
 
     private var trainReplacementComposer: some View {
         VStack(alignment: .leading, spacing: self.theme.metrics.spacing.sm) {
-            TextField("Type the correct text, e.g. FluidVoice", text: self.$trainingReplacement)
+            TextField("Type the correct text, e.g. Just Say It", text: self.$trainingReplacement)
                 .dictionaryInputChrome()
                 .disabled(self.isTrainingRecording || self.isTrainingProcessing)
                 .onChange(of: self.trainingReplacement) { oldValue, newValue in
@@ -885,7 +908,7 @@ struct CustomDictionaryView: View {
         VStack(alignment: .leading, spacing: self.theme.metrics.spacing.sm) {
             Text("With")
                 .font(self.theme.typography.captionStrong)
-            TextField("FluidVoice", text: self.$manualDraft.replacement)
+            TextField("Just Say It", text: self.$manualDraft.replacement)
                 .dictionaryInputChrome()
                 .focused(self.$manualReplacementFocused)
                 .accessibilityLabel("Correct spelling")
@@ -918,7 +941,7 @@ struct CustomDictionaryView: View {
 
     private var trainingRecorderPanel: some View {
         VStack(alignment: .leading, spacing: self.theme.metrics.spacing.md) {
-            Text("Teach FluidVoice your pronunciation")
+            Text("Teach Just Say It your pronunciation")
                 .font(self.theme.typography.bodySmallStrong)
 
             if self.trainingAlreadyCorrectWithoutReplacement {
@@ -946,7 +969,7 @@ struct CustomDictionaryView: View {
                     )
                     self.trainingInstruction(
                         number: 3,
-                        text: "Say \(self.trainingTargetReference) naturally, then pause. FluidVoice records and listens again automatically."
+                        text: "Say \(self.trainingTargetReference) naturally, then pause. Just Say It records and listens again automatically."
                     )
                     self.trainingInstruction(
                         number: 4,
@@ -1134,7 +1157,7 @@ struct CustomDictionaryView: View {
                                 .foregroundStyle(self.theme.palette.tertiaryText)
                         }
                     }
-                    Text("Words and phrases FluidVoice will correct automatically.")
+                    Text("Words and phrases Just Say It will correct automatically.")
                         .font(self.theme.typography.caption)
                         .foregroundStyle(self.theme.palette.secondaryText)
                 }
@@ -1246,7 +1269,7 @@ struct CustomDictionaryView: View {
                     Text("Your Dictionary")
                         .font(self.theme.typography.sectionTitle)
 
-                    Text("FluidVoice automatically corrects these words and phrases.")
+                    Text("Just Say It automatically corrects these words and phrases.")
                         .font(self.theme.typography.caption)
                         .foregroundStyle(self.theme.palette.secondaryText)
                 }
@@ -1403,7 +1426,7 @@ struct CustomDictionaryView: View {
                 Text("Use cautiously")
                     .font(self.theme.typography.captionStrong)
                     .foregroundStyle(self.theme.palette.primaryText)
-                Text("FluidVoice may sometimes use these words when you meant something similar.")
+                Text("Just Say It may sometimes use these words when you meant something similar.")
                     .font(self.theme.typography.caption)
                     .foregroundStyle(self.theme.palette.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
@@ -1479,7 +1502,7 @@ struct CustomDictionaryView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Word or Phrase")
                     .font(self.theme.typography.captionStrong)
-                TextField("FluidVoice", text: self.$boostTermText)
+                TextField("Just Say It", text: self.$boostTermText)
                     .font(self.theme.typography.bodySmall)
                     .dictionaryInputChrome()
                     .onSubmit { self.saveBoostTermIfValid() }
@@ -1606,7 +1629,7 @@ struct CustomDictionaryView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Try Saying")
                                 .font(self.theme.typography.captionStrong)
-                            Text("Examples of what FluidVoice will type.")
+                            Text("Examples of what Just Say It will type.")
                                 .font(self.theme.typography.caption)
                                 .foregroundStyle(self.theme.palette.secondaryText)
                             self.punctuationTrySayingPreview
@@ -1742,7 +1765,7 @@ struct CustomDictionaryView: View {
             if self.punctuationRules.isEmpty {
                 self.dictionaryEmptyState(
                     title: "No punctuation rules",
-                    detail: "Add what you say and what FluidVoice should type."
+                    detail: "Add what you say and what Just Say It should type."
                 )
             } else {
                 LazyVStack(spacing: self.theme.metrics.spacing.sm) {
@@ -2536,7 +2559,7 @@ struct CustomDictionaryView: View {
               self.canAddTrainedReplacement || self.trainingAlreadyCorrectWithoutReplacement else { return }
         if self.trainingAlreadyCorrectWithoutReplacement {
             self.trainingHasError = true
-            self.trainingStatusMessage = "FluidVoice already recognises this word. Nothing new was saved."
+            self.trainingStatusMessage = "Just Say It already recognises this word. Nothing new was saved."
             return
         }
         self.isTrainingProcessing = true
@@ -2631,7 +2654,7 @@ struct CustomDictionaryView: View {
     private func addManualTrainingSpelling(_ spelling: String) -> String? {
         guard !self.isManualEntryBlocked else { return "Pause learning before editing spellings." }
         guard self.trainingVariants.count < CustomDictionaryTrainingMerge.maxSamples else { return "Remove a spelling before adding another." }
-        guard let normalized = CustomDictionaryTrainingMerge.normalizedTrigger(spelling) else { return "Enter the spelling FluidVoice gets wrong." }
+        guard let normalized = CustomDictionaryTrainingMerge.normalizedTrigger(spelling) else { return "Enter the spelling Just Say It gets wrong." }
         guard normalized.count <= 160 else { return "Use 160 characters or fewer." }
         guard normalized.caseInsensitiveCompare(self.normalizedTrainingReplacement) != .orderedSame else { return "That is already the correct spelling." }
         guard !self.trainingVariants.contains(where: { $0.caseInsensitiveCompare(normalized) == .orderedSame }) else { return "That spelling is already in this list." }
@@ -2989,7 +3012,7 @@ private struct VoiceMatchingSettingsRow: View {
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "flask.fill")
                         .foregroundStyle(self.theme.palette.accent)
-                    Text("Research Preview: Compares how your voice sounds instead of only the words FluidVoice hears. Results may vary.")
+                    Text("Research Preview: Compares how your voice sounds instead of only the words Just Say It hears. Results may vary.")
                         .font(self.theme.typography.caption)
                         .foregroundStyle(self.theme.palette.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)
@@ -4090,7 +4113,7 @@ struct AddDictionaryEntrySheet: View {
                         Text("This is what will appear in the final transcription.")
                             .font(.fluidSystem(.caption))
                             .foregroundStyle(.secondary)
-                        TextField("FluidVoice", text: self.$replacement)
+                        TextField("Just Say It", text: self.$replacement)
                             .dictionaryInputChrome()
                             .onSubmit { self.saveIfValid() }
                     }
@@ -4286,7 +4309,7 @@ struct EditDictionaryEntrySheet: View {
                             Text("This is what will appear in the final transcription.")
                                 .font(.fluidSystem(.caption))
                                 .foregroundStyle(.secondary)
-                            TextField("FluidVoice", text: self.$replacement)
+                            TextField("Just Say It", text: self.$replacement)
                                 .dictionaryInputChrome()
                                 .onSubmit { self.saveIfValid() }
                         }

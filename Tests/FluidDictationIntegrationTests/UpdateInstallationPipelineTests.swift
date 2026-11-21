@@ -215,7 +215,8 @@ final nonisolated class UpdateInstallationPipelineTests: XCTestCase {
                 installedExpectation: .init(bundleIdentifier: Self.identifier, version: installedVersion, build: installedBuild),
                 expectedVersion: expectedVersion,
                 backupURL: self.backup,
-                isRollback: isRollback
+                isRollback: isRollback,
+                allowedTeamIDs: Self.approvedTeams
             )
         }
 

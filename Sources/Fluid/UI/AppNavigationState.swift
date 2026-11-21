@@ -34,7 +34,7 @@ enum SidebarItem: Hashable {
         case .aiEnhancements: "AI Settings"
         case .cleanupStyles: "Cleanup Styles"
         case .fileTranscription: "File Transcription"
-        case .meetingTranscription: "FluidMeet"
+        case .meetingTranscription: "Meetings"
         case .customDictionary: "Custom Dictionary"
         case .stats: "Stats"
         case .history: "History"
@@ -76,7 +76,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
     var title: String {
         switch self {
         case .general: return "General"
-        case .fluidMeet: return "FluidMeet Settings"
+        case .fluidMeet: return "Meetings Settings"
         case .dictation: return "Dictation"
         case .dictationFormatting: return "Dictation Formatting"
         case .shortcuts: return "Shortcuts"

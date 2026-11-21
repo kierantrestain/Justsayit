@@ -63,6 +63,7 @@ final class ParakeetVocabularyStore {
     enum StoreError: LocalizedError {
         case invalidJSON(String)
         case applicationSupportUnavailable
+        case tooManyTerms(Int)
 
         var errorDescription: String? {
             switch self {
@@ -70,6 +71,8 @@ final class ParakeetVocabularyStore {
                 return "Invalid vocabulary JSON: \(details)"
             case .applicationSupportUnavailable:
                 return "Could not access Application Support directory."
+            case let .tooManyTerms(limit):
+                return "Your vocabulary can hold up to \(limit) words. Remove some saved words and try again."
             }
         }
     }
@@ -85,7 +88,11 @@ final class ParakeetVocabularyStore {
     }
 
     private let fileName = "parakeet_custom_vocabulary.json"
-    private let appSupportFolder = "FluidVoice"
+    private let appSupportFolder = "JustSayIt"
+
+    static var maximumUserTerms: Int {
+        Defaults.maxTerms
+    }
 
     private init() {}
 
@@ -151,7 +158,7 @@ final class ParakeetVocabularyStore {
     /// Search reads a bounded snapshot without creating files or blocking the UI.
     @concurrent nonisolated static func readSearchTerms() async throws -> [VocabularyConfig.Term] {
         guard let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return [] }
-        let url = base.appendingPathComponent("FluidVoice/parakeet_custom_vocabulary.json")
+        let url = base.appendingPathComponent("JustSayIt/parakeet_custom_vocabulary.json")
         guard FileManager.default.fileExists(atPath: url.path) else { return [] }
         let handle = try FileHandle(forReadingFrom: url)
         defer { try? handle.close() }
@@ -184,6 +191,19 @@ final class ParakeetVocabularyStore {
         let url = try self.ensureVocabularyFileExists()
         try text.write(to: url, atomically: true, encoding: .utf8)
         NotificationCenter.default.post(name: .parakeetVocabularyDidChange, object: nil)
+    }
+
+    /// Merge against the current file so a starter selection cannot undo more recent edits.
+    func addUserBoostWords(_ words: [String], weight: Float) throws -> [VocabularyConfig.Term] {
+        let current = try self.loadUserBoostTerms()
+        let additions = StarterVocabulary.newWords(words, existing: current.map(\.text))
+        guard !additions.isEmpty else { return current }
+        guard current.count + additions.count <= Self.maximumUserTerms else {
+            throw StoreError.tooManyTerms(Self.maximumUserTerms)
+        }
+        let updated = current + additions.map { VocabularyConfig.Term(text: $0, weight: weight) }
+        try self.saveUserBoostTerms(updated)
+        return updated
     }
 
     func hasAnyBoostTerms() -> Bool {
@@ -311,13 +331,7 @@ final class ParakeetVocabularyStore {
           "minSimilarity": 0.72,
           "minCombinedConfidence": 0.64,
           "minTermLength": 3,
-          "terms": [
-            {
-              "text": "FluidVoice",
-              "aliases": ["fluid voice", "fluid boys"],
-              "weight": 10.0
-            }
-          ]
+          "terms": []
         }
         """
     }

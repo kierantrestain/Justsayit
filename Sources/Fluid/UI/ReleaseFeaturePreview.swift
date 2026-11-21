@@ -69,7 +69,7 @@ struct ReleaseFeaturePreview: View {
             }
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass")
-                Text("Search across FluidVoice")
+                Text("Search across Just Say It")
                 Spacer(minLength: 0)
             }
             .font(.system(size: 9))

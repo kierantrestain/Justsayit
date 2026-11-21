@@ -70,7 +70,7 @@ struct DictationScreenContextSettings: View {
 
                 Text(
                     self.permission.requiresSettings
-                        ? "Allow FluidVoice under Screen & System Audio Recording."
+                        ? "Allow Just Say It under Screen & System Audio Recording."
                         : "macOS calls this Screen Recording access."
                 )
                 .font(self.theme.typography.caption)

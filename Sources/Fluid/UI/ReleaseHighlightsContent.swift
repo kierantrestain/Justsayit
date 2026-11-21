@@ -51,13 +51,10 @@ struct ReleaseHighlightsContent {
         )
         return Self(
             release: "1.6.13",
-            title: hasPrivateAI ? "Better dictation. Smarter cleanup." : "Meet Fluid Speech Pro",
-            subtitle: hasPrivateAI
-                ? "Explore our latest on-device models for dictation and cleanup."
-                : "On-device dictation in 25 languages, built for Apple Silicon.",
-            officialSiteNotice: "**Help people find the real FluidVoice.** A site impersonating FluidVoice is appearing above us in search results, making it harder for people to find us. "
-                + "Our official websites are [fluidvoice.com](https://fluidvoice.com) and [altic.dev/fluid](https://altic.dev/fluid). "
-                + "If FluidVoice has helped you, please visit [fluidvoice.com](https://fluidvoice.com) and explore. Bookmark and share it to help others find the real app. Thank you for supporting us.",
+            title: "Meet Just Say It",
+            subtitle: "On-device dictation with a dictionary for the words you use.",
+            officialSiteNotice: "**Make it yours.** Open Dictionary → Starter Vocabulary to find names, places, and phrases to boost with Parakeet. "
+                + "Just Say It is based on [FluidVoice](https://github.com/altic-dev/FluidVoice).",
             features: hasPrivateAI ? [speechPro, ripple, splash] : [speechPro]
         )
     }
