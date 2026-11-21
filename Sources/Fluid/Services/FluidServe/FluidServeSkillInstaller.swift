@@ -1,6 +1,6 @@
 import Foundation
 
-/// Adds or removes the `fluidmeet` skill that tells Claude Code and Codex how to call `fv-serve`.
+/// Adds or removes the `justsayit-meetings` skill that tells Claude Code and Codex how to call `fv-serve`.
 /// It only ever touches the one file it wrote: a skill of the same name from somewhere else is left alone.
 nonisolated enum FluidServeSkillInstaller {
     static let skillName = FluidServeSkill.name
@@ -37,7 +37,7 @@ nonisolated enum FluidServeSkillInstaller {
         case installed
         /// Ours, but written by an older build or for an app that has since moved.
         case needsUpdate
-        /// A `fluidmeet` skill that Just Say It did not write.
+        /// A `justsayit-meetings` skill that Just Say It did not write.
         case foreign
     }
 

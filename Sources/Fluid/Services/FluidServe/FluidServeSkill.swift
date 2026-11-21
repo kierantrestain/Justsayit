@@ -1,9 +1,9 @@
 import Foundation
 
-/// The `fluidmeet` skill text. Shared with the `fv-serve` tool so `fv-serve skill` prints exactly
+/// The `justsayit-meetings` skill text. Shared with the `fv-serve` tool so `fv-serve skill` prints exactly
 /// what the app's buttons install, for coding agents the app has no button for.
 nonisolated enum FluidServeSkill {
-    static let name = "fluidmeet"
+    static let name = "justsayit-meetings"
     static let marker = "<!-- Installed by Just Say It. Remove it in Just Say It: Meetings settings > Integrations. -->"
     /// Markers written by earlier builds. A file carrying one is still ours, just out of date.
     static let earlierMarkers = ["<!-- Installed by FluidVoice. Remove it in FluidVoice: Settings > Experimental > Fluid Server. -->"]

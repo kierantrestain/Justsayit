@@ -302,9 +302,9 @@ final class FluidServeTests: XCTestCase {
 
         try FluidServeSkillInstaller.install(for: agent, toolPath: tool, home: self.home)
         let file = FluidServeSkillInstaller.skillFile(for: agent, home: self.home)
-        XCTAssertEqual(file.path, self.home.path + "/.claude/skills/fluidmeet/SKILL.md")
+        XCTAssertEqual(file.path, self.home.path + "/.claude/skills/justsayit-meetings/SKILL.md")
         let written = try String(contentsOf: file, encoding: .utf8)
-        XCTAssertTrue(written.hasPrefix("---\nname: fluidmeet\ndescription: \""))
+        XCTAssertTrue(written.hasPrefix("---\nname: justsayit-meetings\ndescription: \""))
         let description = try XCTUnwrap(written.split(separator: "\n").dropFirst(2).first)
         XCTAssertTrue(description.hasSuffix("\""), "The description is one quoted line, so a colon inside it cannot break the header")
         XCTAssertEqual(description.filter { $0 == "\"" }.count, 2)
@@ -327,7 +327,7 @@ final class FluidServeTests: XCTestCase {
     func testASkillInstalledByAnEarlierBuildIsStillOursAndJustNeedsUpdating() throws {
         let file = FluidServeSkillInstaller.skillFile(for: .claudeCode, home: self.home)
         try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-        let earlier = "---\nname: fluidmeet\n---\n\(FluidServeSkill.earlierMarkers[0])\n\nOld text.\n"
+        let earlier = "---\nname: justsayit-meetings\n---\n\(FluidServeSkill.earlierMarkers[0])\n\nOld text.\n"
         try Data(earlier.utf8).write(to: file)
 
         XCTAssertEqual(FluidServeSkillInstaller.status(for: .claudeCode, toolPath: "/x/fv-serve", home: self.home), .needsUpdate)
@@ -340,7 +340,7 @@ final class FluidServeTests: XCTestCase {
         let agent = FluidServeSkillInstaller.Agent.codex
         let file = FluidServeSkillInstaller.skillFile(for: agent, home: self.home)
         try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-        let theirs = "---\nname: fluidmeet\ndescription: mine\n---\nHand written.\n"
+        let theirs = "---\nname: justsayit-meetings\ndescription: mine\n---\nHand written.\n"
         try Data(theirs.utf8).write(to: file)
 
         XCTAssertEqual(FluidServeSkillInstaller.status(for: agent, toolPath: "/x/fv-serve", home: self.home), .foreign)
@@ -379,7 +379,7 @@ final class FluidServeTests: XCTestCase {
         XCTAssertTrue(self.sharing.value, "Copying instructions for another agent starts sharing too")
         XCTAssertEqual(clipboard, FluidServeSkill.agentInstructions(toolPath: tool.path))
         XCTAssertEqual(clipboard?.contains("'/Applications/Fluid Voice.app/Contents/Helpers/fv-serve' skill"), true, "The path is quoted, so a space in it still works")
-        XCTAssertEqual(clipboard?.contains("fluidmeet"), true)
+        XCTAssertEqual(clipboard?.contains("justsayit-meetings"), true)
 
         let refused = self.model(tool: tool, check: { _ in .working(meetings: 0) }, copy: { _ in false })
         self.sharing.value = false
@@ -408,7 +408,7 @@ final class FluidServeTests: XCTestCase {
         try FileManager.default.createDirectory(at: self.home.appendingPathComponent(".claude"), withIntermediateDirectories: true)
         let theirs = FluidServeSkillInstaller.skillFile(for: .codex, home: self.home)
         try FileManager.default.createDirectory(at: theirs.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try Data("---\nname: fluidmeet\n---\nHand written.\n".utf8).write(to: theirs)
+        try Data("---\nname: justsayit-meetings\n---\nHand written.\n".utf8).write(to: theirs)
         let model = self.model(tool: URL(fileURLWithPath: "/x/fv-serve"), check: { _ in .working(meetings: 0) }, copy: { _ in true })
         await model.refresh()
 
@@ -564,7 +564,7 @@ final class FluidServeTests: XCTestCase {
     func testAnAddThatCannotHappenIsReportedAndNotConfirmed() async throws {
         let file = FluidServeSkillInstaller.skillFile(for: .codex, home: self.home)
         try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-        let theirs = "---\nname: fluidmeet\ndescription: mine\n---\nHand written.\n"
+        let theirs = "---\nname: justsayit-meetings\ndescription: mine\n---\nHand written.\n"
         try Data(theirs.utf8).write(to: file)
         let model = self.model(tool: URL(fileURLWithPath: "/x/fv-serve"), check: { _ in .working(meetings: 0) })
 

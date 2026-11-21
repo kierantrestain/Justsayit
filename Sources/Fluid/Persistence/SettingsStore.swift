@@ -44,7 +44,7 @@ final class SettingsStore: ObservableObject {
     private(set) var launchAtStartupEnabled = false
     private(set) var launchAtStartupErrorMessage: String?
     private(set) var launchAtStartupStatusMessage =
-        "FluidVoice reflects the actual macOS login item state. Unsigned or development builds may fail to enable this."
+        "Just Say It shows the current macOS login item status."
 
     private init() {
         self.migrateTranscriptionStartSoundIfNeeded()

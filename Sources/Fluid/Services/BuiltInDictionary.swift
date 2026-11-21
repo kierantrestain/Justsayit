@@ -13,10 +13,13 @@ nonisolated enum BuiltInDictionary {
         "WhatsApp", "Wi-Fi", "WordPress", "Xcode", "YouTube", "ZoomInfo",
     ]
 
-    static let entries: [SettingsStore.CustomDictionaryEntry] = self.canonicalSpellings.map {
+    static let entries: [SettingsStore.CustomDictionaryEntry] = BuiltInDictionary.canonicalSpellings.map {
         .init(triggers: [$0.lowercased()], replacement: $0)
     } + [
+        .init(triggers: ["chat gpt", "chat g p t"], replacement: "ChatGPT"),
         .init(triggers: ["claud"], replacement: "Claude"),
+        .init(triggers: ["git hub"], replacement: "GitHub"),
+        .init(triggers: ["git lab"], replacement: "GitLab"),
         .init(triggers: ["huggingface", "hugging face"], replacement: "Hugging Face"),
         .init(triggers: ["justsayit"], replacement: "Just Say It"),
         .init(triggers: ["mac o s"], replacement: "macOS"),

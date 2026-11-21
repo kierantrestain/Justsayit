@@ -136,12 +136,12 @@ struct MeetingHomeList: View {
                     .keyboardShortcut("n", modifiers: .command)
 
                     Button(action: self.actions.openSettings) {
-                        Label("FluidMeet settings", systemImage: "gearshape")
+                        Label("Meetings settings", systemImage: "gearshape")
                             .foregroundStyle(self.theme.palette.primaryText)
                     }
                     .labelStyle(.iconOnly)
                     .meetingGlassAction(circular: true)
-                    .help("FluidMeet settings")
+                    .help("Meetings settings")
                     .accessibilityHint("Change the saved recording application, microphone, and meeting defaults")
                 }
             }

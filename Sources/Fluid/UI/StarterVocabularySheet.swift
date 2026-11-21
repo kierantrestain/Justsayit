@@ -9,17 +9,20 @@ struct StarterVocabularySheet: View {
     @State private var enableBoosting: Bool
     private let savedWords: Set<String>
     private let availableSlots: Int
+    private let currentModelSupportsBoosting: Bool
     private let onAdd: ([String], Bool) throws -> Void
 
     init(
         savedWords: [String],
         availableSlots: Int,
         boostingEnabled: Bool,
+        currentModelSupportsBoosting: Bool,
         onAdd: @escaping ([String], Bool) throws -> Void
     ) {
         self.savedWords = Set(savedWords.map(StarterVocabulary.spellingKey))
         self.availableSlots = availableSlots
         self._enableBoosting = State(initialValue: boostingEnabled)
+        self.currentModelSupportsBoosting = currentModelSupportsBoosting
         self.onAdd = onAdd
     }
 
@@ -29,7 +32,7 @@ struct StarterVocabularySheet: View {
 
     private var results: [(group: StarterVocabulary.Group, words: [String])] {
         let groups = self.isSearching ? StarterVocabulary.Group.allCases : [self.group]
-        return groups.map { ($0, $0.matching(self.query)) }.filter { !$0.words.isEmpty }
+        return groups.map { (group: $0, words: $0.matching(self.query)) }.filter { !$0.words.isEmpty }
     }
 
     var body: some View {
@@ -69,6 +72,10 @@ struct StarterVocabularySheet: View {
             }
             Toggle("Enable Parakeet word boosting", isOn: self.$enableBoosting)
                 .toggleStyle(.checkbox)
+            if !self.currentModelSupportsBoosting {
+                Text("Choose a compatible Parakeet model in Voice Engine to use these words in dictation.")
+                    .foregroundStyle(.secondary)
+            }
             if self.availableSlots == 0 {
                 Text("Your word list is full. Remove a saved boost word to make room.")
                     .foregroundStyle(.secondary)
@@ -97,7 +104,7 @@ struct StarterVocabularySheet: View {
         let saved = self.savedWords.contains(StarterVocabulary.spellingKey(word))
         let isSelected = self.selected.contains(word)
         return Toggle(isOn: Binding(
-            get: { isSelected || saved },
+            get: { self.selected.contains(word) || saved },
             set: { isOn in
                 if isOn {
                     self.selected.insert(word)

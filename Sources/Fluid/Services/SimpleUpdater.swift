@@ -889,7 +889,7 @@ final class SimpleUpdater: ObservableObject {
         let base = self.fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
         let support = base ?? URL(fileURLWithPath: NSTemporaryDirectory())
         return support
-            .appendingPathComponent("Fluid", isDirectory: true)
+            .appendingPathComponent("JustSayIt", isDirectory: true)
             .appendingPathComponent(self.rollbackBackupDirectoryName, isDirectory: true)
             .appendingPathComponent(self.installedAppName, isDirectory: true)
     }

@@ -340,7 +340,8 @@ struct CustomDictionaryView: View {
             StarterVocabularySheet(
                 savedWords: self.boostTerms.map(\.text),
                 availableSlots: max(0, ParakeetVocabularyStore.maximumUserTerms - self.boostTerms.count),
-                boostingEnabled: self.vocabBoostingEnabled || self.boostTerms.isEmpty
+                boostingEnabled: self.vocabBoostingEnabled || self.boostTerms.isEmpty,
+                currentModelSupportsBoosting: self.settings.selectedSpeechModel.supportsCustomVocabulary
             ) { words, enableBoosting in
                 self.boostTerms = try ParakeetVocabularyStore.shared.addUserBoostWords(words, weight: BoostStrengthPreset.mild.weight)
                 self.vocabBoostingEnabled = enableBoosting
