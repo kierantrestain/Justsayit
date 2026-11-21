@@ -100,7 +100,7 @@ jobs:
     if: needs.changes.outputs.relevant == 'true' && needs.lint.result == 'success'
     needs: [changes, lint]
     runs-on: macos-26
-    timeout-minutes: 20
+    timeout-minutes: 35
     
     steps:
     - name: Checkout code

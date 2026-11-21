@@ -9,11 +9,9 @@ output_dir="$(cd "$output_dir" && pwd)"
 derived_data="${JUSTSAYIT_DERIVED_DATA_PATH:-$project_dir/DerivedData}"
 
 cd "$project_dir"
-# Use the release identity with faster Swift compilation for the downloadable preview.
 xcodebuild -project Fluid.xcodeproj -scheme Fluid -configuration Release \
     -destination 'platform=macOS,arch=arm64' -derivedDataPath "$derived_data" \
-    ONLY_ACTIVE_ARCH=YES SWIFT_COMPILATION_MODE=singlefile SWIFT_OPTIMIZATION_LEVEL=-Onone \
-    CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+    ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
 
 app="$derived_data/Build/Products/Release/Just Say It.app"
 helper="$app/Contents/Helpers/fv-serve"
@@ -62,6 +60,10 @@ test "$(lipo -archs "$app/Contents/MacOS/Just Say It")" = arm64
 "$helper" --help >/dev/null
 
 archive="$output_dir/Just-Say-It-macOS-arm64.zip"
-ditto -c -k --keepParent "$app" "$staging/Just-Say-It-macOS-arm64.zip"
-mv -f "$staging/Just-Say-It-macOS-arm64.zip" "$archive"
+# Leave Finder metadata out so the extracted app retains its verifiable signature.
+staged_archive="$staging/Just-Say-It-macOS-arm64.zip"
+ditto -c -k --keepParent --norsrc --noextattr "$app" "$staged_archive"
+ditto -x -k "$staged_archive" "$staging/unpacked"
+codesign --verify --deep --strict "$staging/unpacked/Just Say It.app"
+mv -f "$staged_archive" "$archive"
 printf '%s\n' "$archive"

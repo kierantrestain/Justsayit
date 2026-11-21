@@ -4,7 +4,7 @@ Private dictation for macOS. Speak into the app you already use, build a diction
 
 ## Get the macOS preview
 
-Open the latest successful [Build and Test run](https://github.com/kierantrestain/Justsayit/actions/workflows/build.yml) and download **Just-Say-It-macOS-arm64** under **Artifacts**. Sign in to GitHub to download. Unzip the artifact and then unzip the app archive inside it.
+Open [Build and Test](https://github.com/kierantrestain/Justsayit/actions/workflows/build.yml) and choose a run with a successful **Package macOS preview** job. Sign in to GitHub and download **Just-Say-It-macOS-arm64** under **Artifacts**. Unzip the artifact and then unzip the app archive inside it.
 
 The preview targets Apple Silicon Macs running macOS 15 or later. It is ad-hoc signed for testing. Standard distribution through macOS Gatekeeper requires a Developer ID signature and notarization.
 
