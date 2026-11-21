@@ -9,9 +9,11 @@ output_dir="$(cd "$output_dir" && pwd)"
 derived_data="${JUSTSAYIT_DERIVED_DATA_PATH:-$project_dir/DerivedData}"
 
 cd "$project_dir"
+# Use the release identity with faster Swift compilation for the downloadable preview.
 xcodebuild -project Fluid.xcodeproj -scheme Fluid -configuration Release \
     -destination 'platform=macOS,arch=arm64' -derivedDataPath "$derived_data" \
-    ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+    ONLY_ACTIVE_ARCH=YES SWIFT_COMPILATION_MODE=singlefile SWIFT_OPTIMIZATION_LEVEL=-Onone \
+    CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
 
 app="$derived_data/Build/Products/Release/Just Say It.app"
 helper="$app/Contents/Helpers/fv-serve"
