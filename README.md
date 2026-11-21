@@ -10,6 +10,8 @@ The preview targets Apple Silicon Macs running macOS 15 or later. It is ad-hoc s
 
 On first launch, select a speech engine and grant microphone access. Accessibility permission lets Just Say It type into other apps. Local models might need to download before your first recording.
 
+If Accessibility is on but setup still says **Needed** after installing a newer preview, select the existing **Just Say It** entry in **System Settings → Privacy & Security → Accessibility** and click **−**. Use **+** to pick the copy you opened, then turn on its switch. macOS ties approval for ad-hoc-signed previews to the build you selected.
+
 ## Dictionary
 
 Open **Dictionary → Starter Vocabulary**. Browse or search 245 suggested names, places, and everyday or work terms. Search accepts unaccented input, so `siobhan` finds **Siobhán** and `nguyen` finds **Nguyễn**. Select the entries you say and enable **Parakeet word boosting** to use them with a compatible Parakeet model. You can edit or remove them under **Your Dictionary → … → Custom Words (Advanced)**.

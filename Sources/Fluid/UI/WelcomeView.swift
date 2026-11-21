@@ -1233,7 +1233,7 @@ struct OnboardingFlowView: View {
                                 }
 
                                 if !self.isAccessibilityReady {
-                                    Text("Already enabled it? Just Say It will update when macOS confirms access.")
+                                    Text("If the switch is on and Continue is dimmed, select Just Say It in Accessibility, click −, then add this copy again.")
                                         .font(.fluidSystem(size: 12, weight: .medium))
                                         .foregroundStyle(Color.white.opacity(0.42))
                                         .padding(.top, 2)
@@ -1370,9 +1370,9 @@ struct OnboardingFlowView: View {
             return "\(self.appDisplayName) can place text into the app you're using."
         }
         if self.accessibilitySetupInProgress {
-            return "Use the floating guide to drag \(self.appDisplayName) into the Accessibility apps list."
+            return "Use + in Accessibility to select \(self.appDisplayName). Open Show Guide to copy its folder path."
         }
-        return "Open Settings, then use the floating guide to add \(self.appDisplayName)."
+        return "Open Settings, then use + in Accessibility to add \(self.appDisplayName)."
     }
 
     private var appDisplayName: String {

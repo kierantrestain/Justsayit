@@ -5999,7 +5999,7 @@ extension ContentView {
 
             let visibleFrame = screen.visibleFrame
             let panelWidth = min(max((settingsFrame?.width ?? visibleFrame.width * 0.48) * 0.86, 520), 760)
-            let panelHeight: CGFloat = 132
+            let panelHeight: CGFloat = 148
             let gap: CGFloat = 14
 
             let panelX: CGFloat
@@ -6031,8 +6031,8 @@ extension ContentView {
             panel.hidesOnDeactivate = false
             panel.contentView = NSHostingView(
                 rootView: AccessibilitySettingsFloatingGuideView(
-                    appURL: self.draggableAccessibilityAppURL,
-                    appName: self.accessibilityAppDisplayName,
+                    appURL: Bundle.main.bundleURL,
+                    appName: Bundle.main.fluidAppDisplayName,
                     onReturnToApp: {
                         self.cancelAccessibilityPermissionFlow()
                     },
@@ -6125,25 +6125,6 @@ extension ContentView {
                 }
             }
         }
-    }
-
-    private var draggableAccessibilityAppURL: URL {
-        let runningAppURL = Bundle.main.bundleURL
-        if runningAppURL.pathExtension == "app",
-           FileManager.default.fileExists(atPath: runningAppURL.path)
-        {
-            return runningAppURL
-        }
-
-        let installedURL = URL(fileURLWithPath: "/Applications/Just Say It.app")
-        if FileManager.default.fileExists(atPath: installedURL.path) {
-            return installedURL
-        }
-        return Bundle.main.bundleURL
-    }
-
-    private var accessibilityAppDisplayName: String {
-        Bundle.main.fluidAppDisplayName
     }
 
     func restartApp() {
@@ -6298,9 +6279,7 @@ private struct AccessibilitySettingsFloatingGuideView: View {
     let onReturnToApp: () -> Void
     let onClose: () -> Void
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isArrowRaised = false
-    @State private var isTokenHovered = false
+    @State private var copiedAppFolder = false
 
     private var appIcon: NSImage {
         NSWorkspace.shared.icon(forFile: self.appURL.path)
@@ -6308,93 +6287,8 @@ private struct AccessibilitySettingsFloatingGuideView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            HStack(spacing: 12) {
-                Image(systemName: "arrow.up")
-                    .font(.fluidSystem(size: 30, weight: .bold))
-                    .foregroundStyle(FluidOnboardingLandingColors.blue)
-                    .offset(y: self.reduceMotion ? 0 : (self.isArrowRaised ? -8 : 4))
-                    .animation(
-                        self.reduceMotion ? nil : .easeInOut(duration: 0.85).repeatForever(autoreverses: true),
-                        value: self.isArrowRaised
-                    )
-
-                Text("Drag \(self.appName) into the Accessibility apps list as shown")
-                    .font(.fluidSystem(size: 15, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.78))
-                    .lineLimit(1)
-
-                Spacer()
-
-                Button {
-                    self.onClose()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.fluidSystem(size: 11, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.58))
-                        .frame(width: 26, height: 26)
-                        .background(Circle().fill(Color.white.opacity(0.075)))
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .focusable(false)
-                .help("Close guide")
-            }
-
-            HStack(spacing: 12) {
-                Button {
-                    self.onReturnToApp()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.fluidSystem(size: 15, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.72))
-                        .frame(width: 34, height: 34)
-                        .background(Circle().fill(Color.white.opacity(0.075)))
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .focusable(false)
-                .help("Return to \(self.appName)")
-
-                Image(nsImage: self.appIcon)
-                    .resizable()
-                    .frame(width: 34, height: 34)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-
-                Text(self.appName)
-                    .font(.fluidSystem(size: 16, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.92))
-
-                Spacer()
-
-                Image(systemName: "line.3.horizontal")
-                    .font(.fluidSystem(size: 14, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.38))
-            }
-            .padding(.horizontal, 16)
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color.white.opacity(self.isTokenHovered ? 0.095 : 0.055))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(Color.white.opacity(self.isTokenHovered ? 0.16 : 0.08), lineWidth: 1)
-                    )
-            )
-            .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .onHover { isHovered in
-                if self.reduceMotion {
-                    self.isTokenHovered = isHovered
-                } else {
-                    withAnimation(.easeOut(duration: 0.14)) {
-                        self.isTokenHovered = isHovered
-                    }
-                }
-            }
-            .onDrag {
-                NSItemProvider(object: self.appURL as NSURL)
-            }
-            .accessibilityLabel("Drag \(self.appName) to the Accessibility list")
+            self.heading
+            self.appPickerRow
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
@@ -6407,10 +6301,92 @@ private struct AccessibilitySettingsFloatingGuideView: View {
                         .stroke(Color.white.opacity(0.14), lineWidth: 1)
                 )
         )
-        .onAppear {
-            guard !self.reduceMotion else { return }
-            self.isArrowRaised = true
+    }
+
+    private var heading: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "plus.circle")
+                .font(.fluidSystem(size: 28, weight: .medium))
+                .foregroundStyle(FluidOnboardingLandingColors.blue)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Use + to add \(self.appName)")
+                    .font(.fluidSystem(size: 15, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.9))
+                Text("In the file picker, press ⇧⌘G and paste the app folder.")
+                    .font(.fluidSystem(size: 12, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.66))
+            }
+
+            Spacer()
+
+            Button(action: self.onClose) {
+                Image(systemName: "xmark")
+                    .font(.fluidSystem(size: 11, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.58))
+                    .frame(width: 26, height: 26)
+                    .background(Circle().fill(Color.white.opacity(0.075)))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            .help("Close guide")
         }
+    }
+
+    private var appPickerRow: some View {
+        HStack(spacing: 12) {
+            Button(action: self.onReturnToApp) {
+                Image(systemName: "chevron.left")
+                    .font(.fluidSystem(size: 15, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.72))
+                    .frame(width: 34, height: 34)
+                    .background(Circle().fill(Color.white.opacity(0.075)))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            .help("Return to \(self.appName)")
+
+            Image(nsImage: self.appIcon)
+                .resizable()
+                .frame(width: 34, height: 34)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .accessibilityHidden(true)
+
+            Text(self.appURL.lastPathComponent)
+                .font(.fluidSystem(size: 14, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.92))
+                .lineLimit(1)
+
+            Spacer()
+
+            Button(action: self.copyAppFolder) {
+                Label(
+                    self.copiedAppFolder ? "Folder Copied" : "Copy App Folder",
+                    systemImage: self.copiedAppFolder ? "checkmark" : "doc.on.doc"
+                )
+            }
+            .controlSize(.large)
+        }
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
+        .frame(height: 56)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.white.opacity(0.055))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                )
+        )
+    }
+
+    private func copyAppFolder() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        self.copiedAppFolder = pasteboard.setString(self.appURL.deletingLastPathComponent().path, forType: .string)
     }
 }
 
