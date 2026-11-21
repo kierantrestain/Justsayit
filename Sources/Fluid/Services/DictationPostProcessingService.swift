@@ -110,35 +110,22 @@ struct DictationProviderRoute: Equatable {
 
     private static func build(settings: SettingsStore, selectedProviderID: String, configuredModel: String?) -> Self {
         let model = self.modelID(settings: settings, providerID: selectedProviderID, configuredModel: configuredModel)
-        let providerKeys = settings.providerAPIKeys
-
-        if let saved = settings.savedProviders.first(where: { $0.id == selectedProviderID }) {
-            let key = "custom:\(saved.id)"
-            return Self(
-                providerID: selectedProviderID,
-                providerKey: key,
-                baseURL: saved.baseURL,
-                model: model,
-                apiKey: providerKeys[key] ?? providerKeys[selectedProviderID] ?? ""
-            )
-        }
-
-        if ModelRepository.shared.isBuiltIn(selectedProviderID) {
-            return Self(
-                providerID: selectedProviderID,
-                providerKey: selectedProviderID,
-                baseURL: ModelRepository.shared.defaultBaseURL(for: selectedProviderID),
-                model: model,
-                apiKey: providerKeys[selectedProviderID] ?? ""
-            )
+        let saved = settings.savedProviders.first { $0.id == selectedProviderID }
+        let key = saved.map { "custom:\($0.id)" } ?? selectedProviderID
+        let baseURL = saved?.baseURL ?? ModelRepository.shared.defaultBaseURL(for: selectedProviderID)
+        let apiKey = DictationAIPostProcessingGate.apiKeyForRoute(
+            baseURL: baseURL, verifiedFingerprint: settings.verifiedProviderFingerprints[key]
+        ) {
+            let providerKeys = settings.providerAPIKeys
+            return providerKeys[key] ?? providerKeys[selectedProviderID]
         }
 
         return Self(
             providerID: selectedProviderID,
-            providerKey: selectedProviderID,
-            baseURL: "",
+            providerKey: key,
+            baseURL: baseURL,
             model: model,
-            apiKey: providerKeys[selectedProviderID] ?? ""
+            apiKey: apiKey ?? ""
         )
     }
 
@@ -188,25 +175,10 @@ struct DictationProviderRoute: Equatable {
     }
 
     static func resolve(settings: SettingsStore, providerID: String, model: String) -> Self {
-        let trimmedProviderID = providerID.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedModel = model.trimmingCharacters(in: .whitespacesAndNewlines)
-        let providerKeys = settings.providerAPIKeys
-        if let saved = settings.savedProviders.first(where: { $0.id == trimmedProviderID }) {
-            let key = "custom:\(saved.id)"
-            return Self(
-                providerID: trimmedProviderID,
-                providerKey: key,
-                baseURL: saved.baseURL,
-                model: trimmedModel,
-                apiKey: providerKeys[key] ?? providerKeys[trimmedProviderID] ?? ""
-            )
-        }
-        return Self(
-            providerID: trimmedProviderID,
-            providerKey: trimmedProviderID,
-            baseURL: ModelRepository.shared.defaultBaseURL(for: trimmedProviderID),
-            model: trimmedModel,
-            apiKey: providerKeys[trimmedProviderID] ?? ""
+        self.build(
+            settings: settings,
+            selectedProviderID: providerID.trimmingCharacters(in: .whitespacesAndNewlines),
+            configuredModel: model.trimmingCharacters(in: .whitespacesAndNewlines)
         )
     }
 

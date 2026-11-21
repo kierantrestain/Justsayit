@@ -531,14 +531,10 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
 
     @discardableResult
     func saveProviderAPIKeys(invalidating providerID: String? = nil) -> Bool {
-        let expected = self.sanitizedAPIKeys(self.providerAPIKeys)
         let invalidationTarget = providerID ?? self.selectedProviderID
+        guard !invalidationTarget.isEmpty else { return false }
         do {
-            let persisted = try self.settings.saveProviderAPIKeys(self.providerAPIKeys)
-            guard persisted == expected else {
-                throw ProviderAPIKeySaveError.readbackMismatch
-            }
-            self.providerAPIKeys = persisted
+            self.providerAPIKeys = try self.settings.updateProviderAPIKey(self.providerAPIKey(for: invalidationTarget), for: invalidationTarget)
             if invalidationTarget == self.selectedProviderID, self.managedOriginalKey != nil {
                 self.managedOriginalKey = self.providerAPIKey(for: invalidationTarget)
             }
@@ -671,19 +667,6 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
 
     // MARK: - Keychain Access Helpers
 
-    private enum KeychainAccessCheckResult {
-        case granted
-        case denied(OSStatus)
-    }
-
-    private enum ProviderAPIKeySaveError: LocalizedError {
-        case readbackMismatch
-
-        var errorDescription: String? {
-            "Saved API key could not be read back from Keychain."
-        }
-    }
-
     func handleAPIKeyButtonTapped() {
         guard self.ensureKeychainAccessForAPIKeyEdit() else { return }
         self.newProviderApiKey = self.providerAPIKey(for: self.selectedProviderID)
@@ -692,65 +675,17 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
 
     @discardableResult
     func ensureKeychainAccessForAPIKeyEdit() -> Bool {
-        switch self.probeKeychainAccess() {
-        case .granted:
+        do {
+            let keys = try self.settings.providerAPIKeysForEditing()
+            for (key, value) in keys where self.providerAPIKeys[key] == nil {
+                self.providerAPIKeys[key] = value
+            }
             return true
-        case let .denied(status):
-            self.keychainPermissionMessage = self.keychainPermissionExplanation(for: status)
+        } catch {
+            self.keychainPermissionMessage = error.localizedDescription
             self.showKeychainPermissionAlert = true
             return false
         }
-    }
-
-    private func probeKeychainAccess() -> KeychainAccessCheckResult {
-        let service = "com.fluidvoice.provider-api-keys"
-        let account = "fluidApiKeys"
-
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-        ]
-
-        var readQuery = query
-        readQuery[kSecReturnData as String] = kCFBooleanTrue
-        readQuery[kSecMatchLimit as String] = kSecMatchLimitOne
-
-        let readStatus = SecItemCopyMatching(readQuery as CFDictionary, nil)
-        switch readStatus {
-        case errSecSuccess:
-            return .granted
-        case errSecItemNotFound:
-            var addQuery = query
-            addQuery[kSecValueData as String] = (try? JSONEncoder().encode([String: String]())) ?? Data()
-
-            let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
-            if addStatus == errSecSuccess {
-                SecItemDelete(query as CFDictionary)
-            }
-
-            switch addStatus {
-            case errSecSuccess, errSecDuplicateItem:
-                return .granted
-            case errSecAuthFailed, errSecInteractionNotAllowed, errSecUserCanceled:
-                return .denied(addStatus)
-            default:
-                return .denied(addStatus)
-            }
-        case errSecAuthFailed, errSecInteractionNotAllowed, errSecUserCanceled:
-            return .denied(readStatus)
-        default:
-            return .denied(readStatus)
-        }
-    }
-
-    private func keychainPermissionExplanation(for status: OSStatus) -> String {
-        var message = "Just Say It stores provider API keys securely in your macOS Keychain but does not currently have permission to access it."
-        if let detail = SecCopyErrorMessageString(status, nil) as String? {
-            message += "\n\nmacOS reported: \(detail) (\(status))"
-        }
-        message += "\n\nClick \"Always Allow\" when the Keychain prompt appears, or open Keychain Access > login > Passwords, locate the Just Say It entry, and grant access."
-        return message
     }
 
     private func keychainPersistenceExplanation(for error: Error) -> String {
@@ -769,21 +704,12 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
         } else {
             message += "\n\n\(error.localizedDescription)"
         }
-        message += "\n\nClick \"Always Allow\" when the Keychain prompt appears, or open Keychain Access > login > Passwords, locate the Just Say It entry, and grant access."
         return message
     }
 
     private func showKeychainPersistenceFailure(_ error: Error) {
         self.keychainPermissionMessage = self.keychainPersistenceExplanation(for: error)
         self.showKeychainPermissionAlert = true
-    }
-
-    private func sanitizedAPIKeys(_ values: [String: String]) -> [String: String] {
-        values.reduce(into: [String: String]()) { partialResult, pair in
-            let sanitizedValue = pair.value.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard sanitizedValue.isEmpty == false else { return }
-            partialResult[pair.key] = sanitizedValue
-        }
     }
 
     private func hasProviderAPIKeyDraft(for providerID: String) -> Bool {

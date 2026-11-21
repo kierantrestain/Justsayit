@@ -60,6 +60,24 @@ final class KeychainServiceCacheTests: XCTestCase {
         XCTAssertEqual(loadCount, 1)
     }
 
+    func testUpdatingOneProviderPreservesOtherStoredKeys() throws {
+        var stored = ["openai": "old", "anthropic": "other"]
+        let service = KeychainService(testingLoad: { stored }, testingSave: { stored = $0 })
+
+        let updated = try service.updateProviderKey(" new ", canonicalID: "openai", providerID: "openai")
+
+        XCTAssertEqual(updated, ["openai": "new", "anthropic": "other"])
+        XCTAssertEqual(stored, updated)
+    }
+
+    func testEmptyKeylessProviderDoesNotCreateKeychainItem() throws {
+        var writes = 0
+        let service = KeychainService(testingLoad: { [:] }, testingSave: { _ in writes += 1 })
+
+        XCTAssertTrue(try service.updateProviderKey("", canonicalID: "ollama", providerID: "ollama").isEmpty)
+        XCTAssertEqual(writes, 0)
+    }
+
     func testSuccessfulStoreUpdatesCacheWithoutReloadingKeychain() throws {
         var loadCount = 0
         var stored: [String: String] = [:]

@@ -98,6 +98,16 @@ enum DictationAIPostProcessingGate {
         return digest.map { String(format: "%02x", $0) }.joined()
     }
 
+    /// A successful verification without a key lets local requests skip credential storage.
+    static func apiKeyForRoute(baseURL: String, verifiedFingerprint: String?, readKey: () -> String?) -> String? {
+        if let verifiedFingerprint, self.isLocalEndpoint(baseURL),
+           self.providerFingerprint(baseURL: baseURL, apiKey: "") == verifiedFingerprint
+        {
+            return nil
+        }
+        return readKey()
+    }
+
     private static func isPrivateProviderConfigured(settings: SettingsStore) -> Bool {
         PrivateAIProviderPromptFormat.verifiedModelID(settings: settings) != nil
     }

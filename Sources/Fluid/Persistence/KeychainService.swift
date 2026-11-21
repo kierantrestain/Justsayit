@@ -67,7 +67,7 @@ final class KeychainService {
         let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
         // Mutations are rare and must merge against the latest aggregate in
         // case another app instance or Keychain Access changed it.
-        var keys = try self.loadStoredKeys(forceRefresh: true)
+        var keys = try self.loadStoredKeys(forceRefresh: true, allowInteraction: true)
         keys[providerID] = trimmed
         try self.saveStoredKeys(keys)
     }
@@ -80,7 +80,7 @@ final class KeychainService {
     func deleteKey(for providerID: String) throws {
         self.ioLock.lock()
         defer { self.ioLock.unlock() }
-        var keys = try self.loadStoredKeys(forceRefresh: true)
+        var keys = try self.loadStoredKeys(forceRefresh: true, allowInteraction: true)
         guard keys.removeValue(forKey: providerID) != nil else { return }
         try self.saveStoredKeys(keys)
     }
@@ -94,8 +94,8 @@ final class KeychainService {
         return try self.loadStoredKeys().keys.sorted()
     }
 
-    func fetchAllKeys() throws -> [String: String] {
-        try self.loadStoredKeys()
+    func fetchAllKeys(allowInteraction: Bool = false) throws -> [String: String] {
+        try self.loadStoredKeys(forceRefresh: allowInteraction, allowInteraction: allowInteraction)
     }
 
     /// Refreshes the process cache after the user returns to FluidVoice, so
@@ -106,13 +106,32 @@ final class KeychainService {
         _ = try self.loadStoredKeys(forceRefresh: true)
     }
 
-    func storeAllKeys(_ values: [String: String]) throws {
-        try self.saveStoredKeys(values)
-    }
-
-    func legacyProviderEntries() throws -> [String: String] {
+    func storeAllKeys(_ values: [String: String], allowInteraction: Bool = true) throws {
         self.ioLock.lock()
         defer { self.ioLock.unlock() }
+        try self.withInteraction(allowInteraction) { try self.saveStoredKeys(values) }
+    }
+
+    /// Update one provider without replacing credentials that could not be read in the background.
+    func updateProviderKey(_ value: String, canonicalID: String, providerID: String) throws -> [String: String] {
+        self.ioLock.lock()
+        defer { self.ioLock.unlock() }
+        let existing = try self.loadStoredKeys(forceRefresh: true, allowInteraction: true)
+        var updated = existing
+        if canonicalID != providerID { updated.removeValue(forKey: providerID) }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        updated[canonicalID] = trimmed.isEmpty ? nil : trimmed
+        if existing != updated { try self.saveStoredKeys(updated) }
+        return updated
+    }
+
+    func legacyProviderEntries(allowInteraction: Bool = false) throws -> [String: String] {
+        self.ioLock.lock()
+        defer { self.ioLock.unlock() }
+        return try self.withInteraction(allowInteraction) { try self.readLegacyProviderEntries() }
+    }
+
+    private func readLegacyProviderEntries() throws -> [String: String] {
         var result: [String: String] = [:]
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -159,27 +178,22 @@ final class KeychainService {
         }
     }
 
-    func removeLegacyEntries(providerIDs: [String] = []) throws {
+    func removeLegacyEntries(providerIDs: [String], allowInteraction: Bool) throws {
         self.ioLock.lock()
         defer { self.ioLock.unlock() }
-        let targets: [String]
-        if !providerIDs.isEmpty {
-            targets = providerIDs
-        } else {
-            targets = try Array((self.legacyProviderEntries()).keys)
-        }
-
-        for providerID in targets {
-            let status = SecItemDelete(legacyQuery(for: providerID) as CFDictionary)
-            guard status == errSecSuccess || status == errSecItemNotFound else {
-                throw KeychainServiceError.unhandled(status)
+        try self.withInteraction(allowInteraction) {
+            for providerID in providerIDs {
+                let status = SecItemDelete(self.legacyQuery(for: providerID) as CFDictionary)
+                guard status == errSecSuccess || status == errSecItemNotFound else {
+                    throw KeychainServiceError.unhandled(status)
+                }
             }
         }
     }
 
     // MARK: - Private helpers
 
-    private func loadStoredKeys(forceRefresh: Bool = false) throws -> [String: String] {
+    private func loadStoredKeys(forceRefresh: Bool = false, allowInteraction: Bool = false) throws -> [String: String] {
         if !forceRefresh, case let .loaded(keys) = self.cachedState() { return keys }
 
         self.ioLock.lock()
@@ -188,9 +202,23 @@ final class KeychainService {
         // waited for I/O ownership. Forced refreshes intentionally bypass it.
         if !forceRefresh, case let .loaded(keys) = self.cachedState() { return keys }
 
-        let keys = try self.readStoredKeys()
+        let keys = try self.withInteraction(allowInteraction) { try self.readStoredKeys() }
         self.setCachedKeys(keys)
         return keys
+    }
+
+    /// The file-based login Keychain uses a process-wide interaction policy.
+    /// All calls here are serialized by ioLock, and the previous policy is restored before releasing it.
+    private func withInteraction<T>(_ allowed: Bool, operation: () throws -> T) throws -> T {
+        guard !allowed, self.testingBackend == nil else { return try operation() }
+        var previouslyAllowed = DarwinBoolean(false)
+        let readStatus = SecKeychainGetUserInteractionAllowed(&previouslyAllowed)
+        guard readStatus == errSecSuccess else { throw KeychainServiceError.unhandled(readStatus) }
+        guard previouslyAllowed.boolValue else { return try operation() }
+        let setStatus = SecKeychainSetUserInteractionAllowed(false)
+        guard setStatus == errSecSuccess else { throw KeychainServiceError.unhandled(setStatus) }
+        defer { SecKeychainSetUserInteractionAllowed(true) }
+        return try operation()
     }
 
     private func readStoredKeys() throws -> [String: String] {
@@ -242,7 +270,6 @@ final class KeychainService {
         switch status {
         case errSecSuccess:
             self.setCachedKeys(keys)
-            try self.removeLegacyEntries()
             return
         case errSecDuplicateItem:
             let updateAttributes: [String: Any] = [
@@ -256,7 +283,6 @@ final class KeychainService {
                 throw KeychainServiceError.unhandled(updateStatus)
             }
             self.setCachedKeys(keys)
-            try self.removeLegacyEntries()
         default:
             throw KeychainServiceError.unhandled(status)
         }

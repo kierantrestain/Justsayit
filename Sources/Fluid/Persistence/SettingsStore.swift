@@ -4183,32 +4183,34 @@ final class SettingsStore: ObservableObject {
 
     private func migrateProviderAPIKeysIfNeeded() {
         self.defaults.removeObject(forKey: Keys.providerAPIKeyIdentifiers)
-
-        var merged = (try? self.keychain.fetchAllKeys()) ?? [:]
-        var didMutate = false
-
-        if let legacyDefaults = defaults.dictionary(forKey: Keys.providerAPIKeys) as? [String: String],
-           legacyDefaults.isEmpty == false
-        {
-            merged.merge(self.sanitizeAPIKeys(legacyDefaults)) { _, new in new }
-            didMutate = true
+        do {
+            try self.migrateProviderAPIKeys(allowInteraction: false)
+        } catch {
+            self.logProviderAPIKeyPersistenceFailure(error)
         }
+    }
+
+    func providerAPIKeysForEditing() throws -> [String: String] {
+        try self.migrateProviderAPIKeys(allowInteraction: true)
+        return try self.keychain.fetchAllKeys(allowInteraction: true)
+    }
+
+    func updateProviderAPIKey(_ value: String, for providerID: String) throws -> [String: String] {
+        try self.migrateProviderAPIKeys(allowInteraction: true)
+        return try self.keychain.updateProviderKey(value, canonicalID: self.canonicalProviderKey(for: providerID), providerID: providerID)
+    }
+
+    private func migrateProviderAPIKeys(allowInteraction: Bool) throws {
+        let legacyDefaults = self.defaults.dictionary(forKey: Keys.providerAPIKeys) as? [String: String] ?? [:]
+        let legacyKeychain = try self.keychain.legacyProviderEntries(allowInteraction: allowInteraction)
+        guard !legacyDefaults.isEmpty || !legacyKeychain.isEmpty else { return }
+        var merged = try self.keychain.fetchAllKeys(allowInteraction: allowInteraction)
+        merged.merge(self.sanitizeAPIKeys(legacyKeychain)) { existing, _ in existing }
+        merged.merge(self.sanitizeAPIKeys(legacyDefaults)) { existing, _ in existing }
+        try self.keychain.storeAllKeys(merged, allowInteraction: allowInteraction)
         self.defaults.removeObject(forKey: Keys.providerAPIKeys)
-
-        if let legacyKeychain = try? keychain.legacyProviderEntries(),
-           legacyKeychain.isEmpty == false
-        {
-            merged.merge(self.sanitizeAPIKeys(legacyKeychain)) { _, new in new }
-            didMutate = true
-            try? self.keychain.removeLegacyEntries(providerIDs: Array(legacyKeychain.keys))
-        }
-
-        if didMutate {
-            do {
-                _ = try self.saveProviderAPIKeys(merged)
-            } catch {
-                self.logProviderAPIKeyPersistenceFailure(error)
-            }
+        if !legacyKeychain.isEmpty {
+            try self.keychain.removeLegacyEntries(providerIDs: Array(legacyKeychain.keys), allowInteraction: allowInteraction)
         }
     }
 

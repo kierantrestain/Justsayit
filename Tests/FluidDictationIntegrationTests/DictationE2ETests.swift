@@ -2007,6 +2007,27 @@ extension DictationE2ETests {
         }
     }
 
+    func testVerifiedKeylessEndpointSkipsCredentialRead() throws {
+        let localEndpoint = "http://localhost:11434/v1"
+        let keylessFingerprint = try XCTUnwrap(DictationAIPostProcessingGate.providerFingerprint(baseURL: localEndpoint, apiKey: ""))
+        let localKey = DictationAIPostProcessingGate.apiKeyForRoute(baseURL: localEndpoint, verifiedFingerprint: keylessFingerprint) {
+            XCTFail("Verified keyless Ollama must skip credential storage")
+            return "unused"
+        }
+        XCTAssertNil(localKey)
+    }
+
+    func testAuthenticatedAndUnverifiedEndpointsStillReadCredentials() throws {
+        let localEndpoint = "http://localhost:11434/v1"
+        let remoteEndpoint = "https://example.com/v1"
+        let localFingerprint = try XCTUnwrap(DictationAIPostProcessingGate.providerFingerprint(baseURL: localEndpoint, apiKey: "local-token"))
+        let remoteFingerprint = try XCTUnwrap(DictationAIPostProcessingGate.providerFingerprint(baseURL: remoteEndpoint, apiKey: ""))
+
+        XCTAssertEqual(DictationAIPostProcessingGate.apiKeyForRoute(baseURL: localEndpoint, verifiedFingerprint: localFingerprint) { "local-token" }, "local-token")
+        XCTAssertEqual(DictationAIPostProcessingGate.apiKeyForRoute(baseURL: localEndpoint, verifiedFingerprint: nil) { "local-token" }, "local-token")
+        XCTAssertEqual(DictationAIPostProcessingGate.apiKeyForRoute(baseURL: remoteEndpoint, verifiedFingerprint: remoteFingerprint) { "remote-token" }, "remote-token")
+    }
+
     func testPromptTestConfigurationUsesDraftProviderInsteadOfGlobalProvider() {
         self.withRestoredDefaults(keys: [self.selectedProviderIDKey, self.verifiedProviderFingerprintsKey]) {
             let settings = SettingsStore.shared

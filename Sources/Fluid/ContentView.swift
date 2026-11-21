@@ -424,7 +424,6 @@ struct ContentView: View {
 
     // MARK: - Provider Management
 
-    @State private var providerAPIKeys: [String: String] = [:] // [providerKey: apiKey]
     @State private var currentProvider: String = "" // canonical key: "openai" | "groq" | "custom:<id>"
 
     @State private var savedProviders: [SettingsStore.SavedProvider] = []
@@ -899,7 +898,6 @@ struct ContentView: View {
         self.enableDebugLogs = SettingsStore.shared.enableDebugLogs
         self.availableModelsByProvider = SettingsStore.shared.availableModelsByProvider
         self.selectedModelByProvider = SettingsStore.shared.selectedModelByProvider
-        self.providerAPIKeys = SettingsStore.shared.providerAPIKeys
         self.savedProviders = SettingsStore.shared.savedProviders
 
         var normalized: [String: [String]] = [:]
