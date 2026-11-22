@@ -4192,11 +4192,13 @@ final class SettingsStore: ObservableObject {
 
     func providerAPIKeysForEditing() throws -> [String: String] {
         try self.migrateProviderAPIKeys(allowInteraction: true)
+        self.scrubSavedProviderAPIKeys(allowInteraction: true)
         return try self.keychain.fetchAllKeys(allowInteraction: true)
     }
 
     func updateProviderAPIKey(_ value: String, for providerID: String) throws -> [String: String] {
         try self.migrateProviderAPIKeys(allowInteraction: true)
+        self.scrubSavedProviderAPIKeys(allowInteraction: true)
         return try self.keychain.updateProviderKey(value, canonicalID: self.canonicalProviderKey(for: providerID), providerID: providerID)
     }
 
@@ -4477,7 +4479,7 @@ final class SettingsStore: ObservableObject {
         NotificationCenter.default.post(name: NSNotification.Name("OverlayOffsetChanged"), object: nil)
     }
 
-    private func scrubSavedProviderAPIKeys() {
+    private func scrubSavedProviderAPIKeys(allowInteraction: Bool = false) {
         guard let data = defaults.data(forKey: Keys.savedProviders),
               var decoded = try? JSONDecoder().decode([SavedProvider].self, from: data) else { return }
 
@@ -4489,7 +4491,14 @@ final class SettingsStore: ObservableObject {
 
             let keyID = self.canonicalProviderKey(for: provider.id)
             do {
-                try self.keychain.storeKey(trimmed, for: keyID)
+                try self.keychain.storeKey(trimmed, for: keyID, allowInteraction: allowInteraction)
+                decoded[index] = SavedProvider(
+                    id: provider.id,
+                    name: provider.name,
+                    baseURL: provider.baseURL,
+                    apiKey: "",
+                    models: provider.models
+                )
                 didModify = true
             } catch {
                 DebugLogger.shared
@@ -4498,14 +4507,6 @@ final class SettingsStore: ObservableObject {
                         source: "SettingsStore"
                     )
             }
-
-            decoded[index] = SavedProvider(
-                id: provider.id,
-                name: provider.name,
-                baseURL: provider.baseURL,
-                apiKey: "",
-                models: provider.models
-            )
         }
 
         if didModify,

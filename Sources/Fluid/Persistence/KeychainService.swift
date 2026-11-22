@@ -61,15 +61,15 @@ final class KeychainService {
 
     // MARK: - Public API
 
-    func storeKey(_ key: String, for providerID: String) throws {
+    func storeKey(_ key: String, for providerID: String, allowInteraction: Bool = false) throws {
         self.ioLock.lock()
         defer { self.ioLock.unlock() }
         let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
         // Mutations are rare and must merge against the latest aggregate in
         // case another app instance or Keychain Access changed it.
-        var keys = try self.loadStoredKeys(forceRefresh: true, allowInteraction: true)
+        var keys = try self.loadStoredKeys(forceRefresh: true, allowInteraction: allowInteraction)
         keys[providerID] = trimmed
-        try self.saveStoredKeys(keys)
+        try self.withInteraction(allowInteraction) { try self.saveStoredKeys(keys) }
     }
 
     func fetchKey(for providerID: String) throws -> String? {
